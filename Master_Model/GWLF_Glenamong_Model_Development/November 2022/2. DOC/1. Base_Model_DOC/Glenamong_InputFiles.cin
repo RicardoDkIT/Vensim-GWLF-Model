@@ -1,0 +1,6 @@
+!**********INPUT FILES************
+!Files that provide forcing or calibration data to model
+!
+met file name :IS: 'Met_Glenamong_22022005-31122015.xls'
+time file name :IS: 'Met_Glenamong_22022005-31122015.xls'
+calib file name :IS: 'Glenamong_Discharge_01012002_05042017.xls'
