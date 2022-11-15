@@ -1,0 +1,7 @@
+!**********INPUT FILES************
+!Files that provide forcing or calibration data to model
+!
+met file name :IS: 'Met_Vattholma_1979-2021.xls'
+time file name :IS: 'Met_Vattholma_1979-2021.xls'
+calib file name :IS: 'Vattholma_Discharge_1979-2021.xls'
+DOC calib file name :IS: 'Interpolated_DOC_Vattholma.xls'
