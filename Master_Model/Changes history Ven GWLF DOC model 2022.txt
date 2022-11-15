@@ -1,6 +1,6 @@
 Changes history
 14/3/2022: Eleanor Jennings changed the reference temperature in the decomposition equation to 283oC (10oC).  This was a late change that Pam Naden made to the CLIME version but had not been included here.  When tested in CLIME this did not make any large difference, but seemed more logical than a reference temperature of 10oC
-14/3/2022: Eleanor Jennings changed the DOC in streamflow equation to ‘IF THEN ELSE(gwflow>0,total DOC loss*100/(streamflow)*ZIDZ(SUM(AREA LU [lu DOC!]),(Watershed Area*100)),0)’ from IF THEN ELSE(gwflow>0,total DOC loss*100/(streamflow)*ZIDZ(SUM(AREA LU [lu DOC!]),Watershed Area),0). Watershed area in this model version is in km2 and not in ha as in the old model version.  The equation is now correct
+14/3/2022: Eleanor Jennings changed the DOC in streamflow equation to ï¿½IF THEN ELSE(gwflow>0,total DOC loss*100/(streamflow)*ZIDZ(SUM(AREA LU [lu DOC!]),(Watershed Area*100)),0)ï¿½ from IF THEN ELSE(gwflow>0,total DOC loss*100/(streamflow)*ZIDZ(SUM(AREA LU [lu DOC!]),Watershed Area),0). Watershed area in this model version is in km2 and not in ha as in the old model version.  The equation is now correct
 16/03/2022: Ricardo Marroquin incorporated measured DOC (variable name: meas DOC) to the model for the calibration through the DOC .cin input file. The line: "DOC calib file name :IS: 'EXCEL FILE NAME'" was added to the DOC .cin input file. The excel file with measured DOC data is included in the folder.
 16/03/2022: Ricardo Marroquin added the "DOC calib file name" and the "meas DOC" as displayed variables in the Optimizing sheet of the model.
 16/03/2022: Ricardo Marroquin included in the folder the "MeasDOC_SimDOC_payoff.vdp" payoff of the example DOC optimization (as discussed on 16/03/2022) and the "Opt_DOC_Parameters.voc" of the example DOC optimization (as discussed on 16/03/2022).
@@ -38,6 +38,36 @@ Changes history
 	Please check the INITIAL TIME and FINAL TIME for the simulations before running the model. If the simulations are meant for DOC simulations
 	or optimizations, the current procedure involving daily and monthly loads RMS needs to be ran only for the period for which measured DOC is
 	available.
+
+
+12/11/2022 Ricardo Paiz
+
+Modelling work developed to update the base_model.
+
+	Hydrology:
+
+	1) Relevant for Glenamong_Catchment study site: changed the season temperature threshold (in SEASON and SEASON SWITCH variables) from 25 to 50 in order to replicate the seasonality
+	of the last model that will be now based on temperature and not a fixed period.
+
+
+	2)Relevant for Glenamong_Catchment study site: corrected and cleaned the Glenamong_Hydrology_1.cin file. Now all the land use categories used in the Glenamong_catchment are included for the CNs, Dormant and Growing ETP coefficients resulting in proper weighted averages for the catchment.
+
+	3)Changed the equation for dayjul variable from: "Time - time start cal yr + 1" to "IF THEN ELSE( YEAr = INITIAL YEAR , Time - time start cal yr + INTEGER(365*(INITIAL MONTH - 1)/12) + INITIAL DAY OF MONTH - 1, Time - time start cal yr + 1)".
+	This allows the model to obtain the proper julian day if the simulation does not start in January 1st.
+
+	4) Deep percolation equation was NOT modified but discussed.
+
+	5) Slow gwflow equation was modified from " Deep Satzone*SLOW RECESS COEFF" to "MAX ( (Deep Satzone + deep percolation) * SLOW RECESS COEFF , 0)". 
+
+	6) Relevant for Glenamong_Catchment study site: Initial concentrations of UNSATZONE and SATZONE were changed to 0. This, in calibration runs, resulted in significant better fits for the catchment.
+
+	DOC:
+
+	1) A small change in the "C conc in gwflow" equation was done: the WATERSHED AREA was not multiplied by 100 which resulted in incorrect units. So a factor of 100 was added to the equation, resulting in: "IF THEN ELSE(gwflow>0,total loss in gwflow*100/(gwflow)*ZIDZ(SUM(AREA LU [lu DOC!]),Watershed Area*100),0)". We don't use this often and it does not affect any other variables.
+
+	2) Relevant for Glenamong_Catchment study site: Changed the SOIL MOISTURE INDEX THRESHOLD (from 0.2 to 0.025 in order to obtain more values in the UNSAT DOC variable for the Glenamong catchment). It is a subjective measure and was just trying to get more points on "saturated DOC" for the DOC optimization process.
+
+
 
 	
 
