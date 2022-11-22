@@ -67,6 +67,11 @@ Modelling work developed to update the base_model.
 
 	2) Relevant for Glenamong_Catchment study site: Changed the SOIL MOISTURE INDEX THRESHOLD (from 0.2 to 0.025 in order to obtain more values in the UNSAT DOC variable for the Glenamong catchment). It is a subjective measure and was just trying to get more points on "saturated DOC" for the DOC optimization process.
 
+22/11/2022 Ricardo Paiz
+
+Modelling work developed to update the base_model.
+
+	1) Changed the DOC conc in streamflow equation, from "IF THEN ELSE(gwflow>0,total daily DOC loss*100/(streamflow)*ZIDZ(SUM(AREA LU [lu DOC!]),(Watershed Area*100)),0)" to "IF THEN ELSE(streamflow>0,total daily DOC loss*100/(streamflow)*ZIDZ(SUM(AREA LU [lu DOC!]),(Watershed Area*100)),0)". If there is streamflow there will be DOC concentration in the outlet of the catchment - before it was depending on the gwflow (which is not correct).
 
 
 	
