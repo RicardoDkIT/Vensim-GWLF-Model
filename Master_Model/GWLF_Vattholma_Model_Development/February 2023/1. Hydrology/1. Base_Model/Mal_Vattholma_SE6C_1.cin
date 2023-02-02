@@ -1,0 +1,163 @@
+!**********CONTROL**********
+FINAL DAY OF MONTH = 30
+FINAL MONTH = 12
+FINAL YEAR = 2011
+INITIAL DAY OF MONTH = 13
+INITIAL MONTH = 09
+INITIAL YEAR = 1979
+!
+!***BELOW IS FOR VALIDATION***
+! NOTE 1 year warm-up period
+!FINAL DAY OF MONTH = 30
+!FINAL MONTH = 12
+!FINAL YEAR = 2021
+!INITIAL DAY OF MONTH = 01
+!INITIAL MONTH = 01
+!INITIAL YEAR = 2011
+!
+!**********INPUT FILES************
+!Files that provide forcing or calibration data to model
+!
+!
+met file name :IS: 'Met_Vattholma_1979-2021.xls'
+time file name :IS: 'Met_Vattholma_1979-2021.xls'
+calib file name :IS: 'Vattholma_Discharge_1979-2021.xls'
+!
+!
+!**********HYDROLOGY**********
+!----------Corine Land Use Areas This includes all Corine
+!          Land use classes.  Setting any class to 0 causes
+!          it not to affect the model and other data associated
+!          with that class does not need to be added
+!
+AREA LU[Continuous urban] = 0
+AREA LU[Discontinuous urban] = 451.7
+AREA LU[Industrial] = 0
+AREA LU[Road and rail networks] = 0
+AREA LU[Port areas] = 0
+AREA LU[Airports] = 0
+AREA LU[Mineral extraction sites] = 72.9
+AREA LU[Dump sites] = 0
+AREA LU[Construction sites] = 0
+AREA LU[Green urban areas] = 0
+AREA LU[Sport and leisure facilities] = 75.4
+AREA LU[Non irrigated arable land] = 2938.8
+AREA LU[Permanently irrigated land] = 0
+AREA LU[Rice fields] = 0
+AREA LU[Vineyards] = 0
+AREA LU[Fruit trees and berry plantations] = 0
+AREA LU[Olive groves] = 0
+AREA LU[High Productivity Pastures] = 0
+AREA LU[Mixed Productivity Pastures] = 237.2
+AREA LU[Low Productivity Pastures] = 0
+AREA LU[Annual assoc permanent crops] = 0
+AREA LU[Complex cultivation patterns] = 293.7
+AREA LU[principally agriculture] = 894.0
+AREA LU[Agro forestry areas] = 0
+AREA LU[Broad leaved forest] = 455.8
+AREA LU[Coniferous forest] = 12538.1
+AREA LU[Mixed forest] = 2203.4
+AREA LU[Natural grasslands] = 0
+AREA LU[Moors and heathland] = 0
+AREA LU[Sclerophyllous vegetation] = 0
+AREA LU[Transitional woodland shrub] = 3891.8
+AREA LU[Beaches] = 0
+AREA LU[dunes] = 0
+AREA LU[sands] = 0
+AREA LU[Bare rocks] = 0
+AREA LU[Sparsely vegetated areas] = 0
+AREA LU[Burnt areas] = 0
+AREA LU[Glaciers and perpetual snow] = 0
+AREA LU[Inland marshes] = 523.7
+AREA LU[Exploited Peat bogs] = 0
+AREA LU[Unexploited Peat bogs] = 836
+AREA LU[Salt marshes] = 0
+AREA LU[Salines] = 0
+AREA LU[Intertidal flats] = 0
+AREA LU[Water courses] = 709.1
+AREA LU[Water bodies] = 0
+AREA LU[Coastal lagoons] = 0
+AREA LU[Estuaries] = 0
+AREA LU[Sea and ocean] = 0
+
+!----------Runoff Curve Numbers 
+INPUT CN LU[Discontinuous urban] = 82.6
+INPUT CN LU[Industrial] = 89.5
+INPUT CN LU[Mineral extraction sites] = 89.1
+INPUT CN LU[Dump sites] = 83.1
+INPUT CN LU[Green urban areas] = 78.8
+INPUT CN LU[Sport and leisure facilities] = 81.1
+INPUT CN LU[Non irrigated arable land] = 81.6
+INPUT CN LU[Mixed Productivity Pastures] = 83.1
+INPUT CN LU[Complex cultivation patterns] = 75
+INPUT CN LU[principally agriculture] = 75
+INPUT CN LU[Broad leaved forest] = 76.8
+INPUT CN LU[Coniferous forest] = 67.5
+INPUT CN LU[Mixed forest] = 71.7
+INPUT CN LU[Transitional woodland shrub] = 69.8
+INPUT CN LU[Inland marshes] = 95.5
+INPUT CN LU[Unexploited Peat bogs] = 95.3
+INPUT CN LU[Water courses] = 98
+
+!----------Evaporation Parameters
+EVAPCOVERCOEFF[DORMANT,Discontinuous urban] = 0.5
+EVAPCOVERCOEFF[DORMANT,Industrial] = 0.3
+EVAPCOVERCOEFF[DORMANT,Mineral extraction sites] = 0.3
+EVAPCOVERCOEFF[DORMANT,Dump sites] = 0.3
+EVAPCOVERCOEFF[DORMANT,Green urban areas] = 0.5
+EVAPCOVERCOEFF[DORMANT,Sport and leisure facilities] = 0.5
+EVAPCOVERCOEFF[DORMANT,Non irrigated arable land] = 1
+EVAPCOVERCOEFF[DORMANT,Mixed Productivity Pastures] = 1
+EVAPCOVERCOEFF[DORMANT,Complex cultivation patterns] = 0.3
+EVAPCOVERCOEFF[DORMANT,principally agriculture] = 0.3
+EVAPCOVERCOEFF[DORMANT,Broad leaved forest] = 0.3
+EVAPCOVERCOEFF[DORMANT,Coniferous forest] = 1
+EVAPCOVERCOEFF[DORMANT,Mixed forest] = 0.3
+EVAPCOVERCOEFF[DORMANT,Transitional woodland shrub] = 0.3
+EVAPCOVERCOEFF[DORMANT,Inland marshes] = 1
+EVAPCOVERCOEFF[DORMANT,Unexploited Peat bogs] = 1
+EVAPCOVERCOEFF[DORMANT,Water courses] = 1
+!
+EVAPCOVERCOEFF[GROWING,Discontinuous urban] = 0.5
+EVAPCOVERCOEFF[GROWING,Industrial] = 0.3
+EVAPCOVERCOEFF[GROWING,Mineral extraction sites] = 0.3
+EVAPCOVERCOEFF[GROWING,Dump sites] = 0.3
+EVAPCOVERCOEFF[GROWING,Green urban areas] = 0.5
+EVAPCOVERCOEFF[GROWING,Sport and leisure facilities] = 0.5
+EVAPCOVERCOEFF[GROWING,Non irrigated arable land] = 1
+EVAPCOVERCOEFF[GROWING,Mixed Productivity Pastures] = 1
+EVAPCOVERCOEFF[GROWING,Complex cultivation patterns] = 1
+EVAPCOVERCOEFF[GROWING,principally agriculture] = 1
+EVAPCOVERCOEFF[GROWING,Broad leaved forest] = 1
+EVAPCOVERCOEFF[GROWING,Coniferous forest] = 1
+EVAPCOVERCOEFF[GROWING,Mixed forest] = 1
+EVAPCOVERCOEFF[GROWING,Transitional woodland shrub] = 1
+EVAPCOVERCOEFF[GROWING,Inland marshes] = 1
+EVAPCOVERCOEFF[GROWING,Unexploited Peat bogs] = 1
+EVAPCOVERCOEFF[GROWING,Water courses] = 1
+!
+!----------Hydrologic model lumped parameters
+!                   Calibrated 2023-Jan-31
+INIT SATZONE = 0
+INIT SNOWPACK = 0
+INIT UNSATZONE = 10.9
+MELT COEFF = 0.186678
+PRECIP CORRECT FACTOR = 1.0682
+RECESS COEFF = 0.0231475
+SEEP COEFF = 0
+SOIL WATER CAP = 18.4949
+UNSAT LEAK COEFF = 0
+STARTGROW = 5
+ENDGROW = 8
+LATITUDE = 60
+Runoff Corr Factor = 1.0
+ChannelFlowCoef = 0.0884452
+DEEP GW CAP = 2.95476
+SLOW RECESS COEFF = 0.00596751
+theta crit = 0.62
+CN Adj Factor = 2.7309
+!
+!----------Water Temperature model lumped parameters
+!          Updated 2022-01-25 following calibration 
+Slope Warming = 0.261665
+Slope Cooling = 0.352734

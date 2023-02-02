@@ -73,6 +73,9 @@ Modelling work developed to update the base_model.
 
 	1) Changed the DOC conc in streamflow equation, from "IF THEN ELSE(gwflow>0,total daily DOC loss*100/(streamflow)*ZIDZ(SUM(AREA LU [lu DOC!]),(Watershed Area*100)),0)" to "IF THEN ELSE(streamflow>0,total daily DOC loss*100/(streamflow)*ZIDZ(SUM(AREA LU [lu DOC!]),(Watershed Area*100)),0)". If there is streamflow there will be DOC concentration in the outlet of the catchment - before it was depending on the gwflow (which is not correct).
 
+02/02/2023 Ricardo Paiz
+
+	1) Relevant for Vattholma Catchment: Updated the "Interpolated_DOC_Vattholma.csv" file, adding dummie concentrations from 1979 to fit the river discharge measurements and to be able to run the same model in hydrology and DOC for the catchment. No changes to the model were made from the previous model version.
 
 	
 
