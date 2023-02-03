@@ -1,0 +1,33 @@
+!!!! DOC parameters for default
+
+
+DOC calib file name :IS: 'Interpolated_DOC_Vattholma.xls'
+
+DATA EST DOC LOAD FROM DOC LU = 80.3
+
+!!!! model parameters
+ACTIVEE = 5.7
+AERDECOMP RATE = 7
+ANDECOMP = 0.0115651
+SLOW RATE = 0.00500848
+RATIO = 1.67697
+SAT CAP = 5
+MINSOIL ADJ = 0.815496
+
+!!! mineral soil index for land uses
+minsoil lu[Broad leaved forest] = 1
+minsoil lu[Coniferous forest] = 1
+minsoil lu[Mixed forest] = 1
+minsoil lu[Natural grasslands] = 1
+minsoil lu[Moors and heathland] = 1
+minsoil lu[Transitional woodland shrub] = 1
+minsoil lu[Burnt areas] = 1
+minsoil lu[Inland marshes] = 1
+minsoil lu[Exploited Peat bogs] = 0
+minsoil lu[Unexploited Peat bogs] = 0
+
+!!!! initial values
+INIT C = 15
+INIT C CONC DEEP SATZONE = 15
+INIT C CONC SATZONE = 15
+
