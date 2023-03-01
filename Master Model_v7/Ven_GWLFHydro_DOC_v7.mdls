@@ -1,0 +1,38 @@
+1:test6.vdfx
+1:test5.vdfx
+4:Base Calendar Year
+5:"Absolute sim - meas"
+6:Coniferous forest
+6:Continuous urban
+6:D1
+6:Dormant
+6:Growing
+6:T1
+9:test6
+19:66,1
+21:DOC model changed to two component version
+24:28746
+25:40908
+26:40908
+57:1
+54:0
+55:0
+82:0
+86:0
+59:0
+56:0
+58:0
+71:0
+110:0
+111:0
+44:65001
+46:0
+45:1
+49:1
+50:1
+51:
+52:
+53:
+43:LOADS_Domsta
+47:Step3_DOC_SE6C_Domsta_Method1
+48:

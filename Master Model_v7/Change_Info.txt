@@ -1,0 +1,12 @@
+2023-02-28 Don Pierson
+
+This is a version 7 of the Ven_GWLFHydro_DOC model. It is based on the last update to the v6 model by Ricardo.
+
+This version has several additional changes and improvements
+
+The model can now better handle input files that have different lengths (especially the measurred DOC data).  So it is now possible to run all model simulations and calibrations with the same input data files
+
+I have broken up the DOC decomposition calculation into two separate parts.  One dealing with temperature effects and a second part that further modifies the decomposition rate as a function of soil moisture. Hopefully this makes it easier to understand how each climate effect affects the decomposition rate
+
+I have tried to provide a more consistent naming convention to some of the models internal variables in the optimization and error term views
+ 
