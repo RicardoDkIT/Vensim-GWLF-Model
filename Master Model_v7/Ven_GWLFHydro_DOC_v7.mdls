@@ -1,16 +1,14 @@
-1:test6.vdfx
-1:test5.vdfx
+1:current1.vdfx
 4:Base Calendar Year
 5:"Absolute sim - meas"
-6:Coniferous forest
-6:Continuous urban
 6:D1
 6:Dormant
 6:Growing
+6:Inland marshes
 6:T1
-9:test6
-19:66,1
-21:DOC model changed to two component version
+9:current1
+19:70,4
+21:backgroud rate - updated Hyd coeff
 24:28746
 25:40908
 26:40908

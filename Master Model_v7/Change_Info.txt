@@ -10,3 +10,9 @@ I have broken up the DOC decomposition calculation into two separate parts.  One
 
 I have tried to provide a more consistent naming convention to some of the models internal variables in the optimization and error term views
  
+2023-03-06 Don Pierson
+ 
+Checked to be sure new model works for DOC calib >> few minor changes
+Fixed DOC NSE calculations
+Improved units and comnenting in DOC section of model
+ 
