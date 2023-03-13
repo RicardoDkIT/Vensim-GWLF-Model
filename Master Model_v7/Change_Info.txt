@@ -20,7 +20,9 @@ Checked to be sure new model works for DOC calib >> few minor changes
 Fixed DOC NSE calculations
 Improved units and comnenting in DOC section of model
 
-2023-03-12
+2023-03-12 Don Pierson
 Some small changes in the comments in the DOC model
 Added some addtional variables to the Optimization view that may be useful for DOC calibartion
- 
+
+2023-03-12 Don Pierson
+One additional objective function for DOC added to the optimizing view
