@@ -26,3 +26,21 @@ Added some addtional variables to the Optimization view that may be useful for D
 
 2023-03-12 Don Pierson
 One additional objective function for DOC added to the optimizing view
+
+2023-03-15 Don Pierson
+One more objective function to calibrate DOC decomposition bases on comparison of total decomposition 
+to measured DOC export added to the optimizing view.
+
+2023-03-20 Ricardo Paiz
+
+HYDROLOGY MODEL
+new variable added: recharge. Equation: " recharge = percolation+unsat leakage".
+
+Then, ‘percolation’ was replaced with "recharge" in the following equations:
+
+Satzone equation modified from "Satzone = percolation + unsat leakage - fast gwflow - deep seep - deep percolation" to "Satzone = recharge + unsat leakage - fast gwflow - deep seep - deep percolation"
+
+Deep percolation equation modified from "Deep percolation = MIN((DEEP GW CAP-Deep Satzone),(Satzone+percolation-fast gwflow- deep seep))" to "Deep percolation = MIN((DEEP GW CAP-Deep Satzone),(Satzone+recharge-fast gwflow- deep seep))"
+
+DOC MODEL
+Perc loss equation in the DOC view changed from "MAX(slow rate * available C in unsatzone * percolation,0)" to "IF THEN ELSE( fast gwflow>0, MAX(slow rate * available C in unsatzone * recharge,0),0)"
