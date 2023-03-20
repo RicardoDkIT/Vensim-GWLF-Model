@@ -1,16 +1,13 @@
-1:Baseline1.vdfx
-1:RunMinSoilAdj_2.vdfx
-1:RunMinSoilAdj_4.vdfx
 4:Base Calendar Year
-5:Final Diff Mean Meas SIm DOC
+5:fast gwflow
 6:D1
 6:Dormant
 6:Growing
 6:Inland marshes
 6:T1
 9:Baseline1
-19:62,3
-21:Sensitivity Run to test effect of a variable MinSoilAdg
+19:66,1
+21:Baseline run used when developing calib method 6
 24:28746
 25:40908
 26:40908
@@ -23,8 +20,6 @@
 56:0
 58:0
 71:0
-110:0
-111:0
 44:65001
 46:0
 45:1
