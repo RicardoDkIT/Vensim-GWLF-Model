@@ -1,16 +1,17 @@
+1:Baseline1.vdfx
 4:Base Calendar Year
-5:fast gwflow
+5:Relative Diff Stream DOC Conc
 6:D1
 6:Dormant
 6:Growing
 6:Inland marshes
 6:T1
 9:Baseline1
-19:66,1
+19:62,3
 21:Baseline run used when developing calib method 6
 24:28746
-25:40908
-26:40908
+25:41274
+26:41274
 57:1
 54:0
 55:0
@@ -20,6 +21,8 @@
 56:0
 58:0
 71:0
+110:0
+111:0
 44:65001
 46:0
 45:1

@@ -44,3 +44,7 @@ Deep percolation equation modified from "Deep percolation = MIN((DEEP GW CAP-Dee
 
 DOC MODEL
 Perc loss equation in the DOC view changed from "MAX(slow rate * available C in unsatzone * percolation,0)" to "IF THEN ELSE( fast gwflow>0, MAX(slow rate * available C in unsatzone * recharge,0),0)"
+
+2023-03-28 Don Pierson
+A couple of additional functions added to the optimization view.  These are used in the DOC optimisation
+workflow.
