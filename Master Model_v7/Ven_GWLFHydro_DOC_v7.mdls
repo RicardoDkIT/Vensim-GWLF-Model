@@ -1,36 +1,9 @@
-1:Baseline1.vdfx
-4:Base Calendar Year
-5:Relative Diff Stream DOC Conc
+5:DOC conc in streamflow
+6:Continuous urban
 6:D1
 6:Dormant
-6:Growing
-6:Inland marshes
 6:T1
-9:Baseline1
 19:62,3
-21:Baseline run used when developing calib method 6
-24:28746
-25:41274
-26:41274
-57:1
-54:0
-55:0
-82:0
-86:0
-59:0
-56:0
-58:0
-71:0
-110:0
-111:0
-44:65001
-46:0
-45:1
-49:1
-50:1
-51:
-52:
-53:
-43:LOADS_Domsta
-47:Step3_DOC_SE6C_Domsta_Method1
-48:
+24:0
+25:0
+26:0
