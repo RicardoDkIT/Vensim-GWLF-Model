@@ -1,0 +1,4682 @@
+{UTF-8}
+:MACRO: LEAPTEST(var)
+LEAPTEST=IF THEN ELSE
+((MODULO(var,4)=0:AND:MODULO(var,100)<>0):OR:MODULO(var,400)=0,1,0)
+	~	
+	~		|
+
+:END OF MACRO:
+peat decomp kg=
+	peat decomp*Watershed Area*1000
+	~	kg/day
+	~	Converted to kg to make comparison with model 2 easier
+		C stores in kg  (g/m2*watershed area (1 000 000 ))/1000
+		
+		Conversion to entire watershed area g/m2 * watershed area (km2)*1,000,000 (m2/km2) = \
+		g
+		g/1000 = kg
+		Overall conversion factor (1 000 000 )/1000  = multiplier of 1000
+	|
+
+Total Available C= INTEG (
+	Total Decomp-C flow Soil water-C flow Surface soils,
+		0)
+	~	kg
+	~		|
+
+Total Decomp=
+	Temperature Limited Carbon Decomposition*Water Limited Carbon Decomposion*Watershed Area\
+		*1000
+	~	kg/day
+	~	Daily decompositon of carbon due to both temperature and moisture regualted processes
+		
+		C stores in kg  (g/m2*watershed area (1 000 000 ))/1000
+		
+		Conversion to entire watershed area g/m2 * watershed area (km2)*1,000,000 (m2/km2) = \
+		g
+		g/1000 = kg
+		Overall conversion factor (1 000 000 )/1000  = multiplier of 1000
+	|
+
+Carbon Balance 1= INTEG (
+	(peat decomp*Watershed Area*1000)-(total daily DOC loss*Watershed Area*1000),
+		0)
+	~	kg
+	~	C stores in kg  (g/m2*watershed area (1 000 000 ))/1000
+		
+		Carbon balance for model comparison
+		
+		Conversion to entire watershed area g/m2 * watershed area (km2)*1,000,000 (m2/km2) = \
+		g
+		g/1000 = kg
+		Overall conversion factor (1 000 000 )/1000  = multiplier of 1000
+	|
+
+Available C in unsatzone kg=
+	available C in unsatzone*Watershed Area*1000
+	~	kg
+	~	Converted to kg for comparison with model 2
+		
+		C stores in kg  (g/m2*watershed area (1 000 000 ))/1000
+		
+		Conversion to entire watershed area g/m2 * watershed area (km2)*1,000,000 (m2/km2) = \
+		g
+		g/1000 = kg
+		Overall conversion factor (1 000 000 )/1000  = multiplier of 1000
+	|
+
+Carbon Balance 2= INTEG (
+	Total Available C-C Loss Total,
+		0)
+	~	
+	~	0
+	|
+
+C loss Surface Soils=
+	(IF THEN ELSE(runoff DOC Soils m3<Max Store Surface Soils m3, (runoff DOC Soils m3/Max Store Surface Soils m3\
+		)*Available C Surface Soils
+	, Available C Surface Soils ))
+	~	kg/day
+	~	When the runoff from the DOC soils is less than the total storage of water \
+		in the surface soils the export of C is proportional to the ratio of the \
+		runoff:storage.  When the runoff is greater than the water storage then \
+		all the stored C is exported.
+	|
+
+C loss Surface Soils to Storage=
+	Total C loss Surface soils*(1-ChannelFlowCoef)
+	~	kg/day
+	~	The proportion of C transported in surface runoff that is transfered to \
+		channel storage that leaves the watershed more slowly
+	|
+
+C Loss Total=
+	C loss Channel flow+Direct C loss Surface Soils+C loss Total GW
+	~	kg/day
+	~	Total C loss from surface and subsurface flow
+	|
+
+Total C loss Surface soils= INTEG (
+	C loss Surface Soils-Direct C loss Surface Soils-C loss Surface Soils to Storage,
+		0)
+	~	kg
+	~		|
+
+C loss Channel flow=
+	C Storage Channel*ChannelFlowCoef
+	~	kg/day
+	~	Discharge of C from that stored in the channel to the watershed outlet
+	|
+
+Direct C loss Surface Soils=
+	Total C loss Surface soils*ChannelFlowCoef
+	~	kg/day
+	~	Proportoion of C in storm event runoff that directly reachs the watershed \
+		outlet
+	|
+
+C Storage Channel= INTEG (
+	C loss Surface Soils to Storage-C loss Channel flow,
+		0)
+	~	kg
+	~	Storges of storm generated surface carbon in the stream channel.  This \
+		moves to the watershed outlet more slowly
+	|
+
+Streamflow m3=
+	streamflow*Watershed Area*10000
+	~	m3/day
+	~		|
+
+Stream DOC conc=
+	ZIDZ((C Loss Total*1000),Streamflow m3)
+	~	g/m3
+	~		|
+
+C loss Total GW=
+	C Loss GW Flow+C loss Slow GW Flow
+	~	kg/day
+	~	Combined loss to C in all ground water sources
+	|
+
+INIT C surface soils=
+	(Init C conc Surface soils*Max Store Surface Soils m3)/1000
+	~	kg
+	~	Inital store of C in surface soils.  Asummed to be fully saturated at the start of \
+		the simulation
+		g/m3*m3 = g
+		g/1000 = kg
+	|
+
+Max Store Surface Soils m3=
+	Area DOC Soils*(surface soil depth/100)
+	~	m3
+	~	Maximum water storage in surface soil depth in the DOC producing soils.  
+		Area m2 * depth cm * (1m/100cm)
+	|
+
+Init C conc Surface soils=
+	10
+	~	g/m3
+	~	Initial concentraion of C in the water stored in the Surface Soils.
+	|
+
+INIT C Unsat Zone kg=
+	INIT C*Watershed Area*1000
+	~	kg
+	~	C stores in kg  (g/m2*watershed area (1 000 000 ))/1000
+		
+		Conversion to entire watershed area g/m2 * watershed area (km)*1,000,000 (m2/km) = g
+		g/1000 = kg
+		Overall conversion factor (1 000 000 ))/1000  = multiplier of 1000
+		
+		NOTE this method for defining inital amount (Kg) of C in the Unsat zone \
+		makes use of the INIT C coefficient from the original DOC model.  This \
+		avoids and additional coefficient, but The DOC level could be very high \
+		and not that dynamic in the original model so Im not sure this is the best \
+		way to initialize the level
+	|
+
+Available C Surface Soils= INTEG (
+	C flow Surface soils - C loss Surface Soils,
+		INIT C surface soils)
+	~	kg
+	~		|
+
+C flow Soil water=
+	Total Available C-C flow Surface soils
+	~	
+	~		|
+
+Avalable C Unsat Zone= INTEG (
+	C flow Soil water-C loss UnSat Leakage-C Perc loss,
+		INIT C Unsat Zone kg 2)
+	~	kg
+	~	C stores in kg  (g/m2*watershed area (1 000 000 ))/1000
+		
+		Conversion to entire watershed area g/m2 * watershed area (km)*1,000,000 (m2/km) = g
+		g/1000 = kg
+		Overall conversion factor (1 000 000 ))/1000  = multiplier of 1000
+	|
+
+Ratio DOC producing LU=
+	SUM(AREA LU [lu DOC!])/SUM(AREA LU[lu!])
+	~	unitless
+	~	The ratio of DOC prodcuting lands to total watershed area.  This is used \
+		to reduce the transfer of available DOC by accounting for the fact that \
+		all lands (water bodies and impervious surfaces) do not produce DOC in \
+		surface runoff
+	|
+
+C flow Surface soils=
+	(Total Available C*Ratio DOC producing LU)*Ratio Soil Water Depth Total Soil Depth
+	~	kg/day
+	~	This is proportion of the available DOC that is transfered to a pool that can supply \
+		DOC to Surface runoff. It is much smaller than the total available DOC \
+		pool for two reasons 1) the amount is reduced byt the first term in the \
+		equation to account for the fact that now all watershed lands produce DOC \
+		and 2) it is reduced by the second term since omly a small protion of the \
+		total soil water column is assumed to contribute to runoff DOC losses.
+		
+		The parameter surface soil depth can be optimized to increase or decrease the \
+		importance of surface runoff DOC contributions.
+		
+		Im not totally satisified with this method of seperating surface and sub \
+		surface DOC losses.  It would seem more logical the the the surface losses \
+		would come from the unsat zone.  However, the hydro model divides \
+		rain/melt into surface and sub-surface components (surface runoff is not \
+		from the Unsat zone), so this method is consistent with the hydro model.
+	|
+
+Ratio Soil Water Depth Total Soil Depth=
+	surface soil depth/(DEEP GW CAP+SOIL WATER CAP+surface soil depth)
+	~	unitless
+	~	This is the ratio of the depth of the layer of surface soils that is \
+		expected to contribute to surface runoff loss of DOC to the total depth of \
+		the soil column contributing DOC to the stream.  The ratio is also \
+		corrected to account for the amount of DOC produing land use relative to \
+		the total water shed area
+	|
+
+Area DOC Soils=
+	SUM(AREA LU [lu DOC!])*10000
+	~	m2
+	~	Area of DOC producing soils in m2
+		ha CIN input * 10000
+	|
+
+surface soil depth=
+	2
+	~	cm
+	~	depth of DOC producing soils that contributes DOC as a result of transport \
+		by surface runoff
+	|
+
+runoff DOC Soils m3=
+	(SUM(runoff lu[lu DOC!])/100)*Area DOC Soils
+	~	m3
+	~	Runoff occuring from DOC producing soils.  It is assumed that only this transports \
+		DOC.  However later runoff from other areas will dillute this
+		Area DOC soils (m2) * depth runoff (cm) * 1m/100cm
+	|
+
+Available C Deep Sat Zone= INTEG (
+	C loss deep perc-C loss Slow GW Flow,
+		Init C Deep Sat Zone kg)
+	~	kg
+	~	Available C stored in the deep GW pool. Loss from this pool will generally \
+		substain the stream DOC concentration to a minimum level.  The pool will \
+		only be drawn dowm once the Sat Zome is depleted
+	|
+
+Init Unsatzone m3=
+	Watershed Area*INIT UNSATZONE*10000
+	~	m3
+	~	Inital value of unsaturated storage from hydrology model converted to m3 from cm
+		
+		Area (km2) * 1 000 000 * SWC (cm)/100 results in the 10 000 multiplier
+	|
+
+C Loss GW Flow=
+	C loss fast GW+C loss UnSat Leakage
+	~	kg/day
+	~	This is the combined loss of normall GW flow and Unsat Leakage.  These \
+		dont really need to be combined before adding them into the total stream \
+		flow loss, but this is done so to be more consistent with the hydrological \
+		model.
+	|
+
+C loss Slow GW Flow=
+	MAX((Available C Deep Sat Zone*SLOW RECESS COEFF*Slow GW C loss Corr),0)
+	~	kg/day
+	~		|
+
+Init C Deep Sat Zone kg=
+	(INIT C conc deep satzone*INIT deep satzone m3)/1000
+	~	kg
+	~	Inital concentration of C in the Deep Satzone as kg calculated by multipling inital \
+		conc in g/m3 * m3 of sat zone water storage.and converting g to kg
+		g/m3*m3 = g
+		g/1000 = kg
+	|
+
+Init C Sat Zone kg=
+	(INIT C conc satzone*INIT Satzone m3)/1000
+	~	kg
+	~	Inital concentration of C in the Sat zone as kg calculated by multipling inital conc \
+		in g/m3 * m3 of sat zone water storage.and converting g to kg
+		g/m3*m3 = g
+		g/1000 = kg
+	|
+
+INIT C Unsat Zone kg 2=
+	(INIT C conc unsatzone*Init Unsatzone m3)/1000
+	~	kg
+	~	Alternative method of calculating the initial levels of C (kg) in the Unsat zone.
+		g/m3*m3 = g
+		g/1000 = kg
+		
+		This method is based on a the assumption that the inital storage of C in \
+		the unsat zone is somewhat related to an average streamwater DOC \
+		concnetraion * the volume of water stored in the unsat zone.   This may \
+		prevent the model from building up too large a store of Unsat C and \
+		becoming less dynamic than desired?
+	|
+
+INIT deep satzone m3=
+	INIT DEEP SATZONE*Watershed Area*10000
+	~	
+	~	Inital value of Deep satzone storage from hydrology model converted to m3 from cm
+		
+		Area (km2) * 1 000 000 * SWC (cm)/100 results in the 10 000 multiplier
+	|
+
+INIT Satzone m3=
+	INIT SATZONE*Watershed Area*10000
+	~	m3
+	~	Inital value of Satzone storage from hydrology model converted to m3 from cm
+		
+		Area (km2) * 1 000 000 * SWC (cm)/100 results in the 10 000 multiplier
+	|
+
+INIT C conc unsatzone=
+	10
+	~	g/m3
+	~	Initial concentraion of C in the water stored in the unsat zone.  NOTE \
+		this is different that INIT C which is Initial value of C in the Unsat \
+		zone in g/m2
+	|
+
+Available C Sat Zone= INTEG (
+	C Perc loss-C loss fast GW-C loss deep perc,
+		Init C Sat Zone kg)
+	~	kg
+	~		|
+
+Slow GW C loss Corr=
+	1
+	~	unitless
+	~	Factor that can if needed be calibrated in order for the the C loss \
+		associated with Deep GW flow to be increased or decreased realitive to the \
+		water loss by Deep GW flow from the Deep sat zone.
+	|
+
+C loss fast GW=
+	MAX((Available C Sat Zone*RECESS COEFF*GW C loss Corr),0)
+	~	kg/day
+	~		|
+
+GW C loss Corr=
+	1
+	~	unitless
+	~	Factor that can if needed be calibrated in order for the the C loss \
+		associated with GW flow to be increased or decreased realitive to the \
+		water loss by GW flow from the sat zone.
+	|
+
+C loss UnSat Leakage=
+	MAX(Avalable C Unsat Zone*ZIDZ(Unsat Leakage m3, Unsat Storage m3)*Unsat C loss Corr\
+		,0)
+	~	kg/day
+	~	This is the daily loss of carbon from the Unsaturated zone due to unsat \
+		leakage.  This is assumed to be proportional to the porportion of water \
+		that is lost from that which is available in the unsatureate zone (with \
+		the unsat C loss Corr set to 1)
+	|
+
+C loss deep perc=
+	MAX(Available C Sat Zone*ZIDZ(Deep Perc m3,Sat Zone Storage m3),0)
+	~	kg/day
+	~	This is the amount of carbon transfered to the Deep Sat zone by deep \
+		percolation.  It is proportional to the water flow from the saturated \
+		zone.  NOTE that the Deep Sat zone is uaually full and this is a minor \
+		flow component so I did not add an additional calibration factor \
+		associated with this flow
+	|
+
+C Perc loss=
+	Avalable C Unsat Zone*ZIDZ(Perc m3, Unsat Storage m3)*Perc C Loss Corr
+	~	kg/day
+	~	Transfer of C from the unsaturated zone to the saturated zone by percolation. This \
+		is proportion to the precent of Unsat water storage that is exported by \
+		percolation.  If needed this can be further adjusted with the Perc C loss \
+		corr factor.
+		NOTE IM NOT SURE THIS IS ABSOLUTELY CORRECT.  SHOULD THE PERC LOSS BE Perc \
+		m3/(Unsat Storage m3 + Perc m3)
+	|
+
+Perc m3=
+	percolation*Watershed Area*10000
+	~	m3/day
+	~	Percolation from the hydrology model converted to m3/d from cm/d
+		
+		Area (km2) * 1 000 000 * SWC (cm)/100 results in the 10 000 multiplier
+	|
+
+Sat Zone Storage m3=
+	Satzone*Watershed Area*10000
+	~	m3
+	~	Sat Zone storage from hydrology model converted to m3 from cm
+		
+		Area (km2) * 1 000 000 * SWC (cm)/100 results in the 10 000 multiplier
+	|
+
+Unsat Leakage m3=
+	unsat leakage*Watershed Area*10000
+	~	m3/day
+	~	Unsaturated leakage from hydrology model converted to m3/d from cm/d
+		
+		Area (km) * 1 000 000 * SWC (cm)/100 results in the 10 000 multiplier
+	|
+
+Deep Perc m3=
+	deep percolation*Watershed Area*10000
+	~	m3/day
+	~	deep percolation from hydrology model converted to m3/d from cm/d
+		
+		Area (km) * 1 000 000 * SWC (cm)/100 results in the 10 000 multiplier
+	|
+
+Unsat Storage m3=
+	Unsatzone*Watershed Area*10000
+	~	m3
+	~	Unsaturated storage from hydrology model converted to m3 from cm
+		
+		Area (km) * 1 000 000 * SWC (cm)/100 results in the 10 000 multiplier
+	|
+
+Unsat C loss Corr=
+	1
+	~	unitless
+	~	Factor that can if needed be calibrated in order for the the C loss from \
+		unsatureaed flow to be increased or decreased realitive to the water loss \
+		by unsaturated flow
+	|
+
+Perc C Loss Corr=
+	1
+	~	unitless
+	~	Factor that can if needed be calibrated in order for the the C loss \
+		associated with perculation to be increased or decreased realitive to the \
+		water loss by percolation out through the unsaturated zone.
+	|
+
+********************************************************
+	.ven gwlfhydro doc v7
+********************************************************~
+		<?xml version="1.0" encoding="UTF-8"?>
+		<richtext version="1.0.0.0" xmlns="http://www.wxwidgets.org">
+		  <paragraphlayout textcolor="#000000" fontpointsize="9" fontfamily="70" \
+		fontstyle="90" fontweight="400" fontunderlined="0" fontface="Segoe UI" \
+		alignment="1" parspacingafter="10" parspacingbefore="0" linespacing="10" \
+		margin-left="5,4098" margin-right="5,4098" margin-top="5,4098" \
+		margin-bottom="5,4098">
+		    <paragraph>
+		      <text></text>
+		    </paragraph>
+		  </paragraphlayout>
+		</richtext>
+	|
+
+Relative Diff Available DOC=
+	IF THEN ELSE(Time = FINAL TIME, ABS(Diff Init Final Available DOC/available C in unsatzone\
+		), 0)
+	~	
+	~		|
+
+Relative Diff Stream DOC Conc=
+	IF THEN ELSE(Meas DOC =:NA:, :NA:, ABS((DOC conc in streamflow - Meas DOC)/(DOC conc in streamflow\
+		 + Meas DOC)/2))
+	~	
+	~		|
+
+Runoff Median= INITIAL(
+	GET DATA MEDIAN(Meas Runoff, INITIAL TIME, FINAL TIME))
+	~	cm/day
+	~		|
+
+Diff Init Final Available DOC=
+	IF THEN ELSE(Time = FINAL TIME, available C in unsatzone-INIT C , :NA: )
+	~	gC/m2
+	~	Check to see how far the final Carbon has deviated from the initial C.  \
+		Ideally there would be deviations of the difference between Init C and the \
+		present state of the available C reservoir during the simulation, but over \
+		the long run there should not be a large accumulation or loss from the \
+		reservoir.
+	|
+
+Runoff Threshold=
+	0.03
+	~	cm/day
+	~	Runoff values below this threshold are not consdered valuable for \
+		calibrating the DOC in surface runoff.  Present value based on visual \
+		observation of data This is needed since there is always some runoff \
+		associated with each ppt event due to the presence of water bodies
+	|
+
+Runoff DOC=
+	IF THEN ELSE(Meas Runoff > Runoff Threshold, Meas DOC , :NA: )
+	~	mg/l
+	~	The idea with this is to develop set of DOC concenentrations that are \
+		meaured during higher runoff flows and would be useful for calibrating the \
+		RATIO variable in the DOC model
+	|
+
+Runoff Std= INITIAL(
+	GET DATA STDV(Meas Runoff,INITIAL TIME, FINAL TIME))
+	~	cm/day
+	~		|
+
+recharge=
+	percolation+unsat leakage
+	~	cm/day
+	~		|
+
+Meas Watershed DOC Export=
+	IF THEN ELSE(meas interpolated DOC =:NA:,0,(Daily Discharge*meas interpolated DOC)/1000\
+		)
+	~	kg/day
+	~	Calculate the exported DOC based on measured concentrations. \
+		Discharge(m3/day) * Concentration(g/m3 or mg/l) = g/d converted to kg/d
+	|
+
+Watershed DOC Decomp=
+	(Temperature Limited Carbon Decomposition*DOC LU)/1000
+	~	kg/day
+	~	decomp rate (g/m2) * total DOC produing area (m2) and then converted to kg
+	|
+
+Daily Discharge=
+	(streamflow/100)*(Watershed Area*1e+06)
+	~	m3/day
+	~	streamflow cm/d converted to m/d * watershed area in km2 converted to m2 = \
+		daily discharge m3/day
+	|
+
+Sum Watershed DOC Export= INTEG (
+	Meas Watershed DOC Export,
+		0)
+	~	kg
+	~		|
+
+DOC LU=
+	SUM(AREA LU[lu DOC!])*10000
+	~	m2
+	~	Sums all DOC producing Lu area in ha and converts to m2
+	|
+
+Final Diff Meas Sim DOC Load=
+	IF THEN ELSE( Time = FINAL TIME,ABS(Sum Watershed DOC Decompostion-Sum Watershed DOC Export\
+		),0 )
+	~	gC/(day*m2)
+	~	This is for a first calibration step that optimizes the temp dependent \
+		decompostion rate to a value that leads to a cumultive DOC decompostion \
+		that matches the measured DOC export.  This is meant to set decompositon \
+		to a value that allows a mass balance of DOC.
+	|
+
+Sum Watershed DOC Decompostion= INTEG (
+	IF THEN ELSE(Sum Watershed DOC Export = 0, 0,Watershed DOC Decomp  ),
+		0)
+	~	
+	~		|
+
+Mean Sim DOC=
+	IF THEN ELSE(Time = FINAL TIME,Sum Sim DOC/(FINAL TIME-INITIAL TIME),:NA:)
+	~	mg/l
+	~	Simulation lenght mean of the simulated DOC concentration
+	|
+
+Sum Sim DOC= INTEG (
+	DOC conc in streamflow,
+		0)
+	~	mg/l
+	~		|
+
+Final Diff Mean Meas SIm DOC=
+	IF THEN ELSE(Time = FINAL TIME,ABS(Mean Meas Interpolated DOC-Mean Sim DOC),0)
+	~	mg/l
+	~	RMS vaule of the differece between the mean measured and simulate DOC.  \
+		This is used a an objective function in the DOC optimization
+	|
+
+Mean Meas Interpolated DOC= INITIAL(
+	GET DATA MEAN(meas interpolated DOC, INITIAL TIME, FINAL TIME))
+	~	mg/l
+	~	Mean of the interpolated DOC concnetrations read from the external DOC \
+		file.  Intepolated values should be most comparable with the simulated DOC
+	|
+
+INPUT Mean Meas Mo DOC Load=
+	197776
+	~	kg
+	~	This is the Mean daily load calculated using the model section above.  It \
+		can be manually entered here or it can be embeded in a site specifc CIN \
+		file.
+	|
+
+Meas Mo DOC minus mean=
+	IF THEN ELSE( MonthSwitch=1 , (Mo Cum DOC meas interpolated - INPUT Mean Meas Mo DOC Load\
+		)^2 , :NA: )
+	~	
+	~		|
+
+INPUT Mean Meas Daily DOC Load=
+	6502.21
+	~	kg
+	~	This is the Mean daily load calculated using the model section above.  It \
+		can be manually entered here or it can be embeded in a site specifc CIN \
+		file.
+	|
+
+Meas Daily DOC minus mean=
+	IF THEN ELSE(DOC load daily meas interpolated = :NA:, 0, (DOC load daily meas interpolated\
+		 - INPUT Mean Meas Daily DOC Load)^2)
+	~	
+	~		|
+
+Water Limited Carbon Decomposion=
+	EXP(-1*aerdecomp rate*(((SOIL WATER CAP-Unsatzone)/(1.6*SOIL WATER CAP))-0.35)^2)/(EXP\
+		(-1*aerdecomp rate*0.1225))
+	~	gC/(day*m2)
+	~	--------Equation that combines both functions in the original model
+		
+		IF THEN ELSE(soil temp<0, 0, andecomp/EXP(-aerdecomp rate*0.1225) * \
+		EXP(activeE*1443.35*((1/279)-(1/(soil temp+273)))) *EXP(-aerdecomp \
+		rate*(((SOIL WATER CAP-Unsatzone)/(1.6*SOIL WATER CAP))-0.35)^2))
+		
+		--------Equation for moistrue effects that I derived from the Eq 13.2 in the CLIME \
+		book and multiplying by 0.1225
+		
+		EXP(-1*aerdecomp rate*(((SOIL WATER CAP-Unsatzone)/(1.6*SOIL WATER \
+		CAP))-0.35)^2*0.1225)
+		
+		--------Based on SpreadSheet describing moisture function NOTE This is DIFERENT from \
+		eq 13.2 in the CLIME book
+		
+		EXP(-1*aerdecomp rate*(((SOIL WATER CAP-Unsatzone)/(1.6*$SOIL WATER \
+		CAP))-0.35)^2)/(EXP(-1*aerdecomp rate*0.1225))
+	|
+
+Temperature Limited Carbon Decomposition=
+	IF THEN ELSE(soil temp < 0, 0, andecomp * EXP(activeE*1443.35*((1/(Tref+273))-(1/(soil temp\
+		+273)))))
+	~	gC/(day*m2)
+	~		|
+
+peat decomp=
+	Temperature Limited Carbon Decomposition*Water Limited Carbon Decomposion
+	~	gC/(day*m2)
+	~		|
+
+Interpolated Meas minus mean MEAS DOC=
+	IF THEN ELSE(meas interpolated DOC = :NA:,0,(meas interpolated DOC - Mean Meas Interpolated DOC\
+		)^2)
+	~	
+	~		|
+
+Sat DOC=
+	IF THEN ELSE( Soil Moisture Index < Soil Moister Index Threshold :AND:Meas DOC<> :NA:\
+		 , Meas DOC , :NA:)
+	~	
+	~	Cases where measured DOC concentrations are occuring below the SMI \
+		threshold or under saturated conditions.
+	|
+
+UnSat DOC=
+	IF THEN ELSE( Soil Moisture Index >= Soil Moister Index Threshold :AND:Meas DOC<> :NA:\
+		 , Meas DOC , :NA:)
+	~	unitless
+	~	Cases where measured DOC concentrations are occuring above the SMI \
+		threshold or under unsaturated conditions.
+	|
+
+DOC load total sim= INTEG (
+	IF THEN ELSE(DOC load daily meas interpolated = 0, 0 , DOC load daily sim),
+		0)
+	~	
+	~		|
+
+sum meas minus sim DOC conc= INTEG (
+	IF THEN ELSE (Meas minus sim DOCconc = :NA:, 0, Meas minus sim DOCconc),
+		0)
+	~	
+	~		|
+
+Meas minus sim DOCconc=
+	IF THEN ELSE (Meas DOC = :NA:, :NA:, (Meas DOC - DOC conc in streamflow)^2)
+	~	
+	~		|
+
+Meas minus mean MEAS Interpolated DOC=
+	IF THEN ELSE (Meas DOC = :NA:, 0, (Meas DOC - Mean Meas Interpolated DOC)^2)
+	~	
+	~		|
+
+Sum meas minus mean Meas Interpolated DOC= INTEG (
+	IF THEN ELSE (Meas minus mean MEAS Interpolated DOC =:NA:,0, Meas minus mean MEAS Interpolated DOC\
+		),
+		0)
+	~	
+	~		|
+
+NSE Point DOC concs=
+	IF THEN ELSE (sum meas minus sim DOC conc = :NA:,:NA:, 1 - ZIDZ(sum meas minus sim DOC conc\
+		, Sum meas minus mean Meas Interpolated DOC))
+	~	
+	~		|
+
+Meas minus sim daily DOC load=
+	IF THEN ELSE(DOC load daily meas interpolated =:NA:,0, (DOC load daily meas interpolated\
+		 - DOC load daily sim)^2)
+	~	
+	~		|
+
+Daily Load Residuals=
+	DOC load daily meas interpolated - DOC load daily sim
+	~	
+	~		|
+
+Soil Moister Index Threshold=
+	0.2
+	~	unitless
+	~	value of SMI that is used to determine when decomposition would be \
+		primarily determined by temperature or moisture limitation
+	|
+
+Soil Moisture Index=
+	(SOIL WATER CAP-Unsatzone)/SOIL WATER CAP
+	~	unitless
+	~	Used to get a relative indicator to the amount of water in the Unsaturated zone.  0 \
+		= total saturation Unsatzone = SWC
+		large values indicate progressively less water in the UnSat zone.  Use to \
+		divde measured DOC concentration data into groups what will be most \
+		affected by anareboic vs aerobic decomposition.
+	|
+
+NSE Interpolated DOC concs=
+	1 - ZIDZ(Sum Interpolated Meas minus Sim DOC conc, Sum Interpolated Meas minus mean DOC conc\
+		)
+	~	
+	~		|
+
+Sum Interpolated Meas minus Sim DOC conc= INTEG (
+	Interpolated meas minus sim DOCconc,
+		0)
+	~	
+	~	IF THEN ELSE(Interpolated meas minus sim DOCconc =:NA:,0,Interpolated meas \
+		minus sim DOCconc)
+	|
+
+Sum Interpolated Meas minus mean DOC conc= INTEG (
+	Interpolated Meas minus mean MEAS DOC,
+		0)
+	~	
+	~	IF THEN ELSE(Interpolated Meas minus mean MEAS DOC = :NA:,0,Interpolated Meas minus \
+		mean MEAS DOC)
+		IF THEN ELSE(Interpolated Meas minus mean MEAS DOC = 0,0,Interpolated Meas \
+		minus mean MEAS DOC)
+	|
+
+Interpolated meas minus sim DOCconc=
+	IF THEN ELSE(meas interpolated DOC = :NA:, 0 ,(meas interpolated DOC - DOC conc in streamflow\
+		)^2)
+	~	
+	~		|
+
+Tref=
+	10
+	~	deg c
+	~		|
+
+Meas DOC:RAW::=
+	GET DIRECT DATA(DOC calib file name, 'Export', 'A' , 'E2' )
+	~	
+	~		|
+
+Sum Meas Daily DOC minus mean= INTEG (
+	Meas Daily DOC minus mean,
+		0)
+	~	
+	~		|
+
+Meas minus sim Mo DOC load=
+	IF THEN ELSE( MonthSwitch=1 , (Mo Cum DOC meas interpolated  - Mo Cum DOC sim)^2 , :NA:\
+		 )
+	~	
+	~		|
+
+FINAL NSE Mo DOC Loads=
+	IF THEN ELSE(Time=FINAL TIME, NSE Mo DOC Loads , :NA:)
+	~	
+	~		|
+
+Mean Meas Daily DOC Load=
+	IF THEN ELSE(Time = FINAL TIME, (DOC load total meas interpolated / (FINAL TIME - INITIAL TIME\
+		)), :NA:)
+	~	
+	~		|
+
+Sum Meas minus sim daily DOC load= INTEG (
+	Meas minus sim daily DOC load,
+		0)
+	~	
+	~		|
+
+Mean Meas Mo DOC Load=
+	IF THEN ELSE(Time = FINAL TIME, (DOC load total meas interpolated / (FINAL TIME - INITIAL TIME\
+		))*(365/12), :NA:)
+	~	
+	~		|
+
+NSE Daily DOC Loads=
+	1- ZIDZ( Sum Meas minus sim daily DOC load, Sum Meas Daily DOC minus mean )
+	~	
+	~		|
+
+NSE Mo DOC Loads=
+	IF THEN ELSE( MonthSwitch=1 , 1- ZIDZ(Sum Meas minus sim Mo DOC load, Sum Meas Mo DOC minus mean\
+		 ) , :NA: )
+	~	
+	~		|
+
+FINAL NSE Daily DOC Loads=
+	IF THEN ELSE(Time=FINAL TIME, NSE Daily DOC Loads , :NA:)
+	~	
+	~		|
+
+Sum Meas Mo DOC minus mean= INTEG (
+	IF THEN ELSE(MonthSwitch=1, Meas Mo DOC minus mean, 0),
+		0)
+	~	
+	~		|
+
+Sum Meas minus sim Mo DOC load= INTEG (
+	IF THEN ELSE(MonthSwitch=1, Meas minus sim Mo DOC load, 0) ,
+		0)
+	~	
+	~		|
+
+Mo Cum Step DOC meas interpolated Delay= DELAY FIXED (
+	Mo Cum Step DOC meas interpolated, 1, 0)
+	~	
+	~		|
+
+DOC load daily meas interpolated=
+	IF THEN ELSE(meas interpolated DOC = :NA:,0, meas interpolated DOC*Meas Streamflow*Watershed Area\
+		*10)
+	~	gC/(day*m2)
+	~		|
+
+Mo Cum Step DOC sim Delay= DELAY FIXED (
+	Mo Cum Step DOC sim, 1, 0)
+	~	
+	~		|
+
+Mo Cum DOC meas interpolated=
+	IF THEN ELSE( MonthSwitch=1 , Mo Cum Step DOC meas interpolated-Mo Cum Step DOC meas interpolated Delay\
+		 , :NA: )
+	~	
+	~		|
+
+Mo Cum DOC sim=
+	IF THEN ELSE( MonthSwitch=1 , Mo Cum Step DOC sim-Mo Cum Step DOC sim Delay , :NA: )
+	~	
+	~		|
+
+Mo Cum Step DOC meas interpolated=SAMPLE IF TRUE(
+	MonthSwitch=1, DOC load total meas interpolated, 0)
+	~	
+	~		|
+
+DOC Load RMS=
+	(Mo Load Residuals^2)^0.5
+	~	kg/day
+	~		|
+
+Mo Cum Step DOC sim=SAMPLE IF TRUE(
+	MonthSwitch=1, DOC load total sim, 0)
+	~	
+	~		|
+
+DOC load daily sim=
+	DOC conc in streamflow*streamflow*Watershed Area*10
+	~	gC/(day*m2)
+	~		|
+
+Mo Load Residuals=
+	Mo Cum DOC meas interpolated - Mo Cum DOC sim
+	~	
+	~		|
+
+DOC load total meas interpolated= INTEG (
+	IF THEN ELSE(DOC load daily meas interpolated =0, 0 , DOC load daily meas interpolated\
+		),
+		0)
+	~	
+	~		|
+
+meas interpolated DOC:RAW::=
+	GET DIRECT DATA(DOC calib file name, 'Export', 'A' , 'K2' )
+	~	mg/l
+	~		|
+
+Daily Load RMS=
+	IF THEN ELSE(Daily Load Residuals=:NA:,:NA:,(Daily Load Residuals^2)^0.5)
+	~	
+	~		|
+
+DOC calib file name:IS:
+	'blank'
+	~	
+	~		|
+
+Channel runoff loss=
+	MIN((stored channel load),((stored channel load)*ChannelFlowCoef))
+	~	gC/m2/day
+	~		|
+
+stored channel load= INTEG (
+	stored runoff DOC loss-Channel runoff loss,
+		0)
+	~	gC/m2/day
+	~		|
+
+direct runoff loss=
+	runoff loss*ChannelFlowCoef
+	~	
+	~		|
+
+total daily DOC loss=
+	total loss in gwflow+direct runoff loss+Channel runoff loss
+	~	gC/(day*m2)
+	~		|
+
+stored runoff DOC loss=
+	runoff loss*(1-ChannelFlowCoef)
+	~	gC/m2/day
+	~		|
+
+INIT DEEP SATZONE=
+	0
+	~	cm
+	~	Initial water level in the Deep Sat Zone at the start of the simulation
+	|
+
+Cum Corrected Runoff= INTEG (
+	Corrected Runoff,
+		0)
+	~	
+	~		|
+
+********************************************************
+	.Error
+********************************************************~
+	|
+
+Runoff sim Total= INTEG (
+	IF THEN ELSE(Meas Runoff>0, Corrected Runoff , 0),
+		0)
+	~	
+	~	Cumulate the simulated runoff, but only when there is measured runoff.  \
+		This is done so that the QS total can be used to calculate compartive \
+		statistics even when the input measured Q file is shortert than the \
+		simulation
+	|
+
+gwflow sim Total= INTEG (
+	IF THEN ELSE(Meas Baseflow > 0, gwflow , 0 ),
+		0)
+	~	
+	~	Cumulate the simulated baseflow, but only when there is measured baseflow.  \
+		This is done so that the QS total can be used to calculate compartive \
+		statistics even when the input measured Q file is shortert than the \
+		simulation
+	|
+
+StreamFlow CRM=
+	ZIDZ(Qs Total-Qm Total, Qm Total)
+	~	cm
+	~	Measaure of the error at any time of the difference in the cumulative \
+		simulated and measured stream flow / cumulative measured.  Positive \
+		Simulated > than measured ie overestimation Negative simulated in \
+		underestimating
+	|
+
+Qs Total= INTEG (
+	IF THEN ELSE( Meas Streamflow >0 , streamflow , 0 ),
+		0)
+	~	
+	~	Cumulate the simulated streamflow, but only when there is measured \
+		streamflow.  This is done so that the QS total can be used to calculate \
+		compartive statistics even when the input measured Q file is shortert than \
+		the simulation
+	|
+
+Final Cum Runoff Residual=
+	IF THEN ELSE( Time = FINAL TIME, ((Cum Corrected Runoff-Cum Meas Runoff)^2)^0.5 , 0 \
+		)
+	~	
+	~		|
+
+Cum Meas Runoff= INTEG (
+	Meas Runoff,
+		0)
+	~	
+	~		|
+
+Final GW CRM=
+	IF THEN ELSE(Time = FINAL TIME, gwflowCRM, :NA:)
+	~	
+	~		|
+
+Monthly gwflow CRM=
+	IF THEN ELSE(MonthSwitch=1, ZIDZ(Mo Cum gwflow sim - Mo Cum Baseflow meas,Mo Cum Baseflow meas\
+		) , :NA: )
+	~	
+	~		|
+
+Yr Cum Step Baseflow meas=SAMPLE IF TRUE(
+	YearSwitch=1 , Baseflow meas Total , 0)
+	~	
+	~		|
+
+Baseflow meas Total= INTEG (
+	Meas Baseflow,
+		0)
+	~	
+	~		|
+
+Mo Cum Step Baseflow meas Delay1=
+	DELAY FIXED(Mo Cum Step Baseflow meas, 1 , 0 )
+	~	
+	~		|
+
+Yearly Cum Baseflow meas=
+	IF THEN ELSE( YearSwitch=1, Yr Cum Step Baseflow meas-Yr Cum Step Baseflow meas Delay1\
+		 , :NA:)
+	~	
+	~		|
+
+Yearly Cum gwflow sim=
+	IF THEN ELSE( YearSwitch=1, Yr Cum Step gwflow sim-Yr Cum Step gwflow sim Delay1 , :NA:\
+		)
+	~	
+	~		|
+
+gwflowCRM=
+	ZIDZ (gwflow sim Total - Baseflow meas Total,Baseflow meas Total)
+	~	cm
+	~	Measaure of the error at any time of the difference in the cumulative \
+		simulated and measured stream flow / cumulative measured.  Positive \
+		Simulated > than measured ie overestimation Negative simulated in \
+		underestimating
+	|
+
+Mo Cum Step gwflow sim Delay1=
+	DELAY FIXED(Mo Cum Step gwflow sim, 1, 0)
+	~	
+	~		|
+
+Yearly gwflow CRM=
+	IF THEN ELSE(YearSwitch=1, ZIDZ(Yearly Cum gwflow sim-Yearly Cum Baseflow meas, Yearly Cum Baseflow meas\
+		) , :NA: )
+	~	
+	~		|
+
+Mo Cum gwflow sim=
+	IF THEN ELSE( MonthSwitch=1 , Mo Cum Step gwflow sim-Mo Cum Step gwflow sim Delay1 ,\
+		 :NA: )
+	~	
+	~		|
+
+Mo Cum Baseflow meas=
+	IF THEN ELSE(MonthSwitch = 1  ,Mo Cum Step Baseflow meas - Mo Cum Step Baseflow meas Delay1\
+		 , :NA: )
+	~	
+	~		|
+
+Mo Cum Step gwflow sim=SAMPLE IF TRUE(
+	MonthSwitch=1, gwflow sim Total, 0)
+	~	
+	~		|
+
+Yr Cum Step gwflow sim Delay1=
+	DELAY FIXED( Yr Cum Step gwflow sim , 1, 0 )
+	~	
+	~		|
+
+Mo Cum Step Baseflow meas=
+	SAMPLE IF TRUE( MonthSwitch=1 , Baseflow meas Total , 0 )
+	~	
+	~		|
+
+Yr Cum Step Baseflow meas Delay1=
+	DELAY FIXED( Yr Cum Step Baseflow meas , 1, 0 )
+	~	
+	~		|
+
+Yr Cum Step gwflow sim=SAMPLE IF TRUE(
+	YearSwitch=1 , gwflow sim Total , 0)
+	~	
+	~		|
+
+Monthly Runoff CRM=
+	IF THEN ELSE(MonthSwitch=1, ZIDZ(Mo Cum Runoff sim - Mo Cum Runoff meas ,Mo Cum Runoff meas\
+		) , :NA: )
+	~	
+	~		|
+
+Yr Cum Step Runoff sim Delay1=
+	DELAY FIXED( Yr Cum Step Runoff sim , 1, 0 )
+	~	
+	~		|
+
+Mo Cum Runoff meas=
+	IF THEN ELSE(MonthSwitch = 1  ,Mo Cum Step Runoff meas - Mo Cum Step Runoff meas Delay1\
+		 , :NA: )
+	~	
+	~		|
+
+Mo Cum Runoff sim=
+	IF THEN ELSE( MonthSwitch=1 , Mo Cum Step Runoff sim-Mo Cum Step Runoff sim Delay1 ,\
+		 :NA: )
+	~	
+	~		|
+
+Runoff CRM=
+	ZIDZ(Runoff sim Total - Runoff meas Total, Runoff meas Total)
+	~	cm
+	~	Measaure of the error at any time of the difference in the cumulative \
+		simulated and measured stream flow / cumulative measured.  Positive \
+		Simulated > than measured ie overestimation Negative simulated in \
+		underestimating
+	|
+
+Final Runoff CRM=
+	IF THEN ELSE(Time = FINAL TIME, Runoff CRM, :NA:)
+	~	
+	~		|
+
+Mo Cum Step Runoff sim Delay1=
+	DELAY FIXED(Mo Cum Step Runoff sim, 1, 0)
+	~	
+	~		|
+
+Mo Cum Step Runoff meas=
+	SAMPLE IF TRUE( MonthSwitch=1 , Runoff meas Total , 0 )
+	~	
+	~		|
+
+Yearly Runoff CRM=
+	IF THEN ELSE(YearSwitch=1, ZIDZ(Yearly Cum Runoff sim-Yearly Cum Runoff meas, Yearly Cum Runoff meas\
+		) , :NA: )
+	~	
+	~		|
+
+Runoff meas Total= INTEG (
+	Meas Runoff,
+		0)
+	~	
+	~		|
+
+Mo Cum Step Runoff sim=SAMPLE IF TRUE(
+	MonthSwitch=1, Runoff sim Total, 0)
+	~	
+	~		|
+
+Yearly Cum Runoff meas=
+	IF THEN ELSE( YearSwitch=1, Yr Cum Step Runoff meas-Yr Cum Step Runoff meas Delay1 ,\
+		 :NA:)
+	~	
+	~		|
+
+Yearly Cum Runoff sim=
+	IF THEN ELSE( YearSwitch=1, Yr Cum Step Runoff sim-Yr Cum Step Runoff sim Delay1 , :NA:\
+		)
+	~	
+	~		|
+
+Yr Cum Step Runoff sim=SAMPLE IF TRUE(
+	YearSwitch=1 , Runoff sim Total , 0)
+	~	
+	~		|
+
+Mo Cum Step Runoff meas Delay1=
+	DELAY FIXED(Mo Cum Step Runoff meas, 1 , 0 )
+	~	
+	~		|
+
+Yr Cum Step Runoff meas=SAMPLE IF TRUE(
+	YearSwitch=1 , Runoff meas Total , 0)
+	~	
+	~		|
+
+Yr Cum Step Runoff meas Delay1=
+	DELAY FIXED( Yr Cum Step Runoff meas , 1, 0 )
+	~	
+	~		|
+
+Mo Cum Step Qs=
+	SAMPLE IF TRUE(MonthSwitch=1, Qs Total, 0 )
+	~	
+	~		|
+
+Mo Cum Step Qs Delay1=
+	DELAY FIXED(Mo Cum Step Qs, 1, 0)
+	~	
+	~		|
+
+Mo Cum Qm=
+	IF THEN ELSE(MonthSwitch = 1  ,Mo Cum Step Qm - Mo Cum Step Qm Delay1 , :NA: )
+	~	
+	~		|
+
+Mo Cum Qs=
+	IF THEN ELSE( MonthSwitch=1 , Mo Cum Step Qs-Mo Cum Step Qs Delay1 , :NA: )
+	~	
+	~		|
+
+Mo Cum Step Qm=
+	SAMPLE IF TRUE( MonthSwitch=1 , Qm Total , 0 )
+	~	
+	~		|
+
+Mo Cum Step Qm Delay1=
+	DELAY FIXED(Mo Cum Step Qm, 1 , 0 )
+	~	
+	~		|
+
+Monthly Streamflow CRM=
+	IF THEN ELSE(MonthSwitch=1, ZIDZ( Mo Cum Qs - Mo Cum Qm , Mo Cum Qm ), :NA: )
+	~	
+	~		|
+
+Temp days before:
+	T1, T2, T3, T4, T5
+	~	
+	~		|
+
+"Absolute sim - meas"=
+	IF THEN ELSE(Meas Streamflow>0, ABS( streamflow-Meas Streamflow ),0)
+	~	
+	~	Calulate absolute difference of sim - meas streamflow.  Only make this \
+		calculation when there is measured streamflow.  This allows for the \
+		measured data to be shorter than the total simulation period
+	|
+
+Sum Meas Runoff minus Mean= INTEG (
+	Meas Runoff minus Mean,
+		0)
+	~	
+	~		|
+
+Sum Meas Runoff minus Sim= INTEG (
+	Meas Runoff minus Sim,
+		0)
+	~	
+	~		|
+
+MAE=
+	"Sum absolute sim - meas"/Number of observations
+	~	
+	~		|
+
+Final MAE=
+	IF THEN ELSE(Time=FINAL TIME, MAE , 0)
+	~	
+	~		|
+
+Mean Meas Baseflow= INITIAL(
+	GET DATA MEAN(Meas Baseflow, INITIAL TIME, FINAL TIME))
+	~	
+	~		|
+
+Mean Meas Runoff= INITIAL(
+	GET DATA MEAN(Meas Runoff, INITIAL TIME, FINAL TIME))
+	~	
+	~		|
+
+Final NSE Runoff=
+	IF THEN ELSE( Time = FINAL TIME , NSE Runoff, :NA:)
+	~	
+	~		|
+
+Simulated Runoff=
+	Channel Discharge+Direct Runoff
+	~	
+	~		|
+
+Number of observations=
+	GET DATA TOTAL POINTS( Meas Streamflow)
+	~	
+	~		|
+
+"Sum absolute sim - meas"= INTEG (
+	"Absolute sim - meas",
+		0)
+	~	
+	~		|
+
+Sum Meas Baseflow minus Sim= INTEG (
+	Meas Baseflow minus Sim,
+		0)
+	~	
+	~		|
+
+Meas Runoff minus Mean=
+	IF THEN ELSE(Meas Runoff >0, (Meas Runoff-Mean Meas Runoff)^2, 0)
+	~	
+	~	Calulate difference of meas - nean meas runoff.  Only make this \
+		calculation when there is measured streamflow.  This allows for the \
+		measured data to be shorter than the total simulation period
+	|
+
+Meas Runoff minus Sim=
+	IF THEN ELSE(Meas Runoff>0, (Meas Runoff-Simulated Runoff)^2,0)
+	~	
+	~	Calulate difference of sim - meas runoff.  Only make this calculation when \
+		there is measured streamflow.  This allows for the measured data to be \
+		shorter than the total simulation period
+	|
+
+Final NSE Baseflow=
+	IF THEN ELSE( Time = FINAL TIME , NSE Baseflow, :NA:)
+	~	
+	~		|
+
+NSE Baseflow=
+	1- ZIDZ( Sum Meas Baseflow minus Sim, Sum Meas Baseflow minus Mean )
+	~	
+	~		|
+
+Sum Meas Baseflow minus Mean= INTEG (
+	Meas Baseflow minus Mean,
+		0)
+	~	
+	~		|
+
+NSE Runoff=
+	1- ZIDZ( Sum Meas Runoff minus Sim, Sum Meas Runoff minus Mean )
+	~	
+	~		|
+
+Meas Baseflow minus Sim=
+	IF THEN ELSE(Meas Baseflow > 0, (Meas Baseflow-gwflow)^2, 0)
+	~	
+	~	Calulate difference of sim - meas baseflow.  Only make this calculation \
+		when there is measured streamflow.  This allows for the measured data to \
+		be shorter than the total simulation period
+	|
+
+Meas Baseflow minus Mean=
+	IF THEN ELSE( Meas Baseflow > 0,(Meas Baseflow-Mean Meas Baseflow)^2, 0)
+	~	
+	~	Calulate difference of meas - mean meas baseflow.  Only make this \
+		calculation when there is measured streamflow.  This allows for the \
+		measured data to be shorter than the total simulation period
+	|
+
+Final NSE Streamflow=
+	IF THEN ELSE(Time=FINAL TIME, NSE , :NA:)
+	~	
+	~		|
+
+Final CRM=
+	IF THEN ELSE(Time = FINAL TIME, StreamFlow CRM, :NA:)
+	~	
+	~		|
+
+NSE=
+	1- ZIDZ( Sum Meas minus Sim , Sum Meas minus Mean )
+	~	
+	~		|
+
+Meas minus Sim=
+	IF THEN ELSE(Meas Streamflow>0,(Meas Streamflow - streamflow)^2,0)
+	~	
+	~	Calulate difference of sim - meas streamflow.  Only make this calculation \
+		when there is measured streamflow.  This allows for the measured data to \
+		be shorter than the total simulation period
+	|
+
+Mean Meas Streamflow= INITIAL(
+	GET DATA MEAN(Meas Streamflow, INITIAL TIME, FINAL TIME))
+	~	
+	~		|
+
+Sum Meas minus Mean= INTEG (
+	Meas minus Mean,
+		0)
+	~	
+	~		|
+
+Sum Meas minus Sim= INTEG (
+	Meas minus Sim,
+		0)
+	~	
+	~		|
+
+Meas minus Mean=
+	IF THEN ELSE(Meas Streamflow>0,(Meas Streamflow - Mean Meas Streamflow)^2,0)
+	~	
+	~	Calulate difference of meas - mean meas streamflow.  Only make this \
+		calculation when there is measured streamflow.  This allows for the \
+		measured data to be shorter than the total simulation period
+	|
+
+Yr Cum Step Qm=SAMPLE IF TRUE(
+	YearSwitch=1 , Qm Total , 0)
+	~	
+	~		|
+
+Yr Cum Step Qs=SAMPLE IF TRUE(
+	YearSwitch=1 , Qs Total , 0)
+	~	
+	~		|
+
+Yr Cum Step Qm Delay1=
+	DELAY FIXED( Yr Cum Step Qm , 1, 0 )
+	~	
+	~		|
+
+Yr Cum Step Qs Delay1=
+	DELAY FIXED( Yr Cum Step Qs , 1, 0 )
+	~	
+	~		|
+
+CumStepSfRes=SAMPLE IF TRUE(
+	 YearSwitch=1, SumStreamFlowResidualsSquared,0)
+	~	
+	~		|
+
+CumStepSfResDelay1=
+	DELAY FIXED( CumStepSfRes, 1 , 0 )
+	~	
+	~		|
+
+dayjul Delay1=
+	DELAY FIXED( dayjul , 1, 0 )
+	~	
+	~		|
+
+Yearly Cum Qs=
+	IF THEN ELSE( YearSwitch=1, Yr Cum Step Qs-Yr Cum Step Qs Delay1 , :NA:)
+	~	
+	~		|
+
+Yearly RMSE=
+	IF THEN ELSE( YearSwitch=1 ,(YearCumSfRes/dayjul Delay1)^0.5, :NA:)
+	~	
+	~		|
+
+Yearly Cum Qm=
+	IF THEN ELSE( YearSwitch=1, Yr Cum Step Qm-Yr Cum Step Qm Delay1 , :NA:)
+	~	
+	~		|
+
+Qm Total= INTEG (
+	Meas Streamflow,
+		0)
+	~	
+	~		|
+
+YearCumSfRes=
+	IF THEN ELSE( YearSwitch=1, CumStepSfRes-CumStepSfResDelay1, :NA: )
+	~	
+	~		|
+
+Yearly Streamflow CRM=
+	IF THEN ELSE(YearSwitch=1, ZIDZ(Yearly Cum Qs-Yearly Cum Qm, Yearly Cum Qm) , :NA: )
+	~	
+	~		|
+
+Only Water:
+Water courses, Water bodies, Coastal lagoons, Estuaries, Sea and ocean
+	~	index
+	~	list of landuse classes excluding water
+	|
+
+WaterBalance3RMS=
+	(Water Balance 3^2)^0.5
+	~	
+	~		|
+
+********************************************************
+	.DOC
+********************************************************~
+	|
+
+cum peat decomp= INTEG (
+	peat decomp,
+		0)
+	~	gC/m2
+	~		|
+
+available C in unsatzone= INTEG (
+	peat decomp - runoff loss - perc loss - loss in deep perc,
+		INIT C)
+	~	gC/m2
+	~	keeps balance of available DOC in soil water
+	|
+
+total DOC loss=
+	total loss in gwflow+runoff loss
+	~	mg/m2/day
+	~	combined loss from DOC LU
+	|
+
+DOC conc in streamflow=
+	IF THEN ELSE(gwflow>0,total daily DOC loss*100/(streamflow)*ZIDZ(SUM(AREA LU [lu DOC\
+		!]),(Watershed Area*100)),0)
+	~	mg/l
+	~	DOC concentration at the watershed (catchment) outlet. This is used to \
+		calibrate the model to measured DOC
+	|
+
+activeE=
+	10.3
+	~	KJ/gC
+	~		|
+
+aerdecomp rate=
+	10
+	~	fraction
+	~	This figure comes from experimental work undertaken at University of \
+		Leeds, UK, during the 1980s when peat cores were dried and then re-wetted \
+		and the amount of DOC export measured - see Mitchell and McDonald (1992)
+	|
+
+andecomp=
+	0.018
+	~	gC/m2/day
+	~	daily anaerobic decomposition rate - should be fairly similar to published \
+		values of DOC export (i.e. the load values from your data in the correct \
+		units). In UK catchments, DOC export is in the range 5 to 30 gC/m2/year.
+	|
+
+bias total decomp=
+	IF THEN ELSE(Time<>FINAL TIME, 0, ABS(cum peat decomp-data est DOC load from DOC lu)\
+		 )
+	~	gC/m2
+	~		|
+
+C conc in gwflow=
+	IF THEN ELSE(gwflow>0,total loss in gwflow*100/(gwflow)*ZIDZ(SUM(AREA LU [lu DOC!]),\
+		Watershed Area*100),0)
+	~	mg/l
+	~		|
+
+C conc in runoff lu DOC=
+	IF THEN ELSE( runoff lu DOC>0, runoff loss*100/runoff lu DOC, 0)
+	~	mg/l
+	~		|
+
+conc in deep satzone=
+	IF THEN ELSE(Deep Satzone+deep percolation>0, (previous conc in deep satzone*Deep Satzone\
+		+loss in deep perc*100)/(Deep Satzone+deep percolation), 0)
+	~	mg/l
+	~		|
+
+conc in satzone=
+	IF THEN ELSE (Satzone + percolation>0, (previous conc in satzone*Satzone+perc loss*100\
+		)/(Satzone+percolation),0)
+	~	mg/l
+	~		|
+
+runoff lu DOC=
+	SUM(runoff lu[lu DOC!]*AREA LU[lu DOC!])/SUM(AREA LU[lu DOC!])
+	~	cm
+	~		|
+
+SAT CAP=
+	5
+	~	cm
+	~	above this value runoff occurs as overland flow and will dilute the DOC \
+		concentration - it can be thought of as the difference between field \
+		capacity and saturation
+	|
+
+slow rate=
+	0.005
+	~	fraction/cm
+	~		|
+
+soil temp= INTEG (
+	(MAX(mean daily air temp,0) - soil temp)/(IF THEN ELSE(daymelt <2, 10, 30)),
+		10)
+	~	deg c
+	~		|
+
+luadj=
+	(MINSOIL ADJ * SUM(minsoil lu[lu DOC!] * AREA LU[lu DOC!])+SUM((1-minsoil lu[lu DOC!\
+		])*AREA LU[lu DOC!])) / SUM(AREA LU[lu DOC!])
+	~	
+	~	There is a problem here in that this is acting on all DOC land uses which \
+		includes Marshs and water bodies.  There should be a lu MinSoil catagory \
+		for just the true min soil LUs
+	|
+
+INIT C=
+	10
+	~	gC/m2
+	~	initial value of the concentration of DOC within the soil water - adjust \
+		when optimising model (see notes) or use field measurement of \
+		catchment-average depth average DOC concentration of soil wate
+	|
+
+data est DOC load from DOC lu=
+	0
+	~	gC/m2
+	~	Input from .cin file; calculated in spreadsheet
+	|
+
+minsoil lu[lu all]=
+	0
+	~	
+	~	All Lu set to 0 here.  DOES THIS MAKE SENSE?  Should exclude water and \
+		marshes
+	|
+
+daymelt= DELAY FIXED (
+	 Snowpack , 60, 0)
+	~	cm
+	~	Snowpack SWE 60 days ago
+	|
+
+loss in deep perc=
+	MAX(slow rate * available C in unsatzone * deep percolation*luadj,0)
+	~	gC/m2/day
+	~		|
+
+total loss in gwflow=
+	loss in fast gwflow + loss in slow gwflow
+	~	gC/(day*m2)
+	~		|
+
+perc loss=
+	IF THEN ELSE( fast gwflow>0, MAX(slow rate * available C in unsatzone * recharge,0),\
+		0)
+	~	gC/m2
+	~		|
+
+fast rate=
+	ratio*slow rate
+	~	fraction/cm
+	~	fast DOC loss rate realtive to the slow DOC loss rate
+	|
+
+previous conc in satzone= DELAY FIXED (
+	conc in satzone,1,INIT C conc satzone)
+	~	mg/l
+	~		|
+
+INIT C conc deep satzone=
+	5
+	~	mg/l
+	~		|
+
+INIT C conc satzone=
+	5
+	~	mg/l
+	~		|
+
+ratio=
+	1
+	~	
+	~	This the relative difference in the fast rate relative to the slow rate  \
+		In this case of 1 both rates would be the same.  2 would make the fast \
+		rate twice as large a the slow rate.
+	|
+
+loss in slow gwflow=
+	conc in deep satzone*Slow gwflow/100
+	~	gC/m2
+	~		|
+
+loss in fast gwflow=
+	conc in satzone*fast gwflow/100
+	~	gC/m2
+	~		|
+
+previous conc in deep satzone= DELAY FIXED (
+	conc in deep satzone,1,INIT C conc deep satzone)
+	~	mg/l
+	~		|
+
+MINSOIL ADJ=
+	0
+	~	
+	~	Not sure about this also set to 0 in CIN file  This prevent this from \
+		having any effect on the deep perc loss
+	|
+
+runoff loss=
+	MAX(fast rate* available C in unsatzone * (Unsatzone/SOIL WATER CAP)* MIN(runoff lu DOC\
+		, SAT CAP),0)
+	~	gC/m2/day
+	~	Can not go negative (max) SAT CAP seems to set limt on runoff loss
+	|
+
+********************************************************
+	.precip
+********************************************************~
+	|
+
+snow=
+	IF THEN ELSE ( mean daily air temp <= 0, precip correct , 0)
+	~	cm/day
+	~	Daily precipitation falling as snow.
+	|
+
+INIT SNOWPACK=
+	0
+	~	
+	~		|
+
+MELT COEFF=
+	-999
+	~	cm/(day*degree C)
+	~	Temperature index that determines snowmelt as a function of mean daily air \
+		temperature (Haith et. al. 1992) - input as constant
+	|
+
+precip correct=
+	PREcip*PRECIP CORRECT FACTOR
+	~	cm/day
+	~	Daily precipitation, adjusted to conserve long-term water balance. Note \
+		Swedish data is in mm so it is necessary to divide by 10
+	|
+
+PRECIP CORRECT FACTOR=
+	-999
+	~	unitless
+	~	Factor adjusts precipitation input time series data to conserve long-term \
+		water balance.  Calibrated to minimize cumulative error in simulated vs. \
+		measured streamflow, where long-term measured streamflow data is available \
+		- input as constant.
+	|
+
+rain = IF THEN ELSE ( mean daily air temp > 0, precip correct , 0)
+	~	cm/day
+	~	Daily precipitation falling as rain.
+	|
+
+rainmelt = rain + snowmelt
+	~	cm/day
+	~	Daily rain + snowmelt.
+	|
+
+snowmelt = IF THEN ELSE ( mean daily air temp > 0, MIN ( Snowpack , mean daily air temp\
+		 * MELT COEFF ) , 0)
+	~	cm/day
+	~	Daily amount of water released from the snowpack.
+	|
+
+Snowpack= INTEG (
+	 snow - snowmelt,
+		 INIT SNOWPACK)
+	~	cm
+	~	Water equivolent of the snowpack.
+	|
+
+********************************************************
+	.ET
+********************************************************~
+	|
+
+etrestrict=
+	xidz(MIN(Unsatzone/SOIL WATER CAP,theta crit),theta crit,1)
+	~	fraction
+	~	Moisture extraction function modifies the crop cover coefficient in \
+		response to changes in soil moisture content of unsatzone.  If the ratio \
+		of unsatzone soil moisture to soil water capacity exceeds theta_crit, ET \
+		is unrestricted.  If this ratio is less than theta_crit, ET is restricted \
+		as a linear function of unsatzone moisture level.  See Shuttleworth, W.J., \
+		ch.4 Evaporation in Maidment's Handbook of Hydrology, McGraw-Hill, 1993.
+	|
+
+theta crit=
+	0.6
+	~	unitless
+	~	Theta_critical coefficient in moisture extraction function.Theta_crit can \
+		vary between 0 and 1.  Typical values are between .5 and .8.  As \
+		theta_crit increases, the degree of ET restriction due to low soil \
+		moisture levels increases, and thus ET will decrease.  If theta_crit is \
+		set to zero (default), no restriction of ET due to low soil moisture \
+		levels occurs, which is the default GWLF.
+	|
+
+evapotrans=
+	MIN (Unsatzone + infilt to unsatzone , potential evapotrans * SeasonalCoverCoeff *etrestrict\
+		)
+	~	cm/day
+	~	Daily evaporation losses from watershed.
+	|
+
+SeasonalCoverCoeff=
+	IF THEN ELSE(Season=0, DormantCoeff , GrowingCoeff)
+	~	
+	~		|
+
+EvapCoverCoeff[EvapSeason,lu]=
+	-999
+	~	
+	~	Evaporation cover coefficients.  Two coefficients are given for each land \
+		use one for the dormant and one for the growing season.  Using the simple \
+		method for defining these coefficients in the GWLF manual these have a \
+		value of either 0.3 or 1.0
+	|
+
+DormantCoeff=
+	SUM(EvapCoverCoeff[Dormant,lu!]*AREA LU[lu!])/SUM(AREA LU[lu!])
+	~	
+	~	Calculates a basin wide a wieghted mean evaporation cover coefficient for \
+		the Dormant Season
+	|
+
+GrowingCoeff=
+	SUM(EvapCoverCoeff[Growing,lu!]*AREA LU[lu!])/SUM(AREA LU[lu!])
+	~	
+	~	Calculates a basin wide a wieghted mean evaporation cover coefficient for \
+		the Growing Season
+	|
+
+LatitudeRdn=
+	Latitude*(3.14159/180)
+	~	
+	~	Lattitude as radians for Calculation see Kirk (1984) pg 33.
+	|
+
+DayRdn=
+	((dayjul/365)*360)*(3.14159/180)
+	~	radians
+	~	Julian day represented as an angle in radians  For Calculation see Kirk \
+		(1984) pg 33.
+	|
+
+SolarDeclinationRdn=
+	(0.39637-22.9133*Cos(DayRdn)+4.02543*Sin(DayRdn)-0.3872*Cos(2*DayRdn)+0.052*Sin(2*DayRdn\
+		))*(3.14159/180)
+	~	degrees
+	~	Solar declination is the angle at which the northern hemishper is tilted \
+		toward the sun.  From Kirk (1984) pg 33.
+	|
+
+Daylength=
+	0.133*(ARCCOS(-1*TAN(SolarDeclinationRdn)*TAN(LatitudeRdn))*(180/3.14159))
+	~	
+	~	For Calculation see Kirk (1984) pg 33.
+	|
+
+potential evapotrans=
+	IF THEN ELSE ( mean daily air temp > 0, Evap Constant * Daylength ^ 2 * 33.8639 * ( \
+		( 0.00738 * mean daily air temp
+	 + 0.8072) ^ 8 - 1.9e-05 * ( 1.8 * mean daily air temp + 48) + 0.001316) / ( mean daily air temp\
+		 + 273) , 0)
+	~	cm/day
+	~	Daily potential evaporation for watershed, calculated by Hamon-Bosen \
+		method (see Haith et al 1992, p.21)
+	|
+
+Latitude=
+	53
+	~	
+	~	North Latitude in degrees
+	|
+
+Evap Constant=
+	0.021
+	~	
+	~		|
+
+********************************************************
+	.GroundWater
+********************************************************~
+	|
+
+Deep Satzone= INTEG (
+	deep percolation-Slow gwflow,
+		INIT DEEP SATZONE)
+	~	
+	~		|
+
+percolation=
+	MAX ( ( Unsatzone + infilt to unsatzone - evapotrans ) - SOIL WATER CAP , 0)
+	~	cm/day
+	~	daily percolation of water from unsaturated zone to saturated zone.
+	|
+
+Satzone= INTEG (
+	recharge + unsat leakage  - fast gwflow - deep seep - deep percolation,
+		 INIT SATZONE)
+	~	cm
+	~	quantity of water in saturated zone.
+	|
+
+deep seep=
+	MAX ( Satzone  * SEEP COEFF , 0)
+	~	cm/day
+	~	Daily losses of water to the deep saturated zone, assumed to be a regional \
+		aquifer that discharges outside the watershed. Normally this is not known \
+		and set to zero by a 0 value of the Seep Coeff
+	|
+
+Slow gwflow=
+	MAX ( (Deep Satzone + deep percolation) * SLOW RECESS COEFF , 0)
+	~	
+	~		|
+
+SLOW RECESS COEFF=
+	0
+	~	
+	~	slow gwflow recession constant.  If SLOW RECESS COEFF and DEEP GW CAP are \
+		both set to zero (default), no deep percolation or slow gwflow occurs, and \
+		the model defaults to original GWLF with only one saturated zone storage.
+	|
+
+DEEP GW CAP=
+	1
+	~	
+	~	Capacity of deep saturated zone.  Default value of 0 means only fast \
+		gwflow is used, as in original GWLF.   NOTE: Utilizing a two-bucket \
+		saturated zone (Satzone and Deep Satzone) has same effect as Unsaturated \
+		zone leakage.  I suggest you use one or the other.
+	|
+
+deep percolation=
+	MIN((DEEP GW CAP-Deep Satzone),Satzone)
+	~	cm/day
+	~	DEEP GW CAP limits the amount of deep percolation. It can not exceed an amount that \
+		is defined by the DEEP GW CAP. But as long as there is sufficient water in \
+		the Satzone it will recharge the Deep SatZone to DEEP GW CAP. 
+		NOTE if DEEP GW CAP is 0 The Deep Satzone will never get any water and deep \
+		percolation will not occur
+		
+		
+		In the Original Equation
+		MIN((DEEP GW CAP-Deep Satzone),(Satzone+recharge-fast gwflow- deep seep))
+		
+		The second term can be thought of as the sat zone.  The additional \
+		components are added since the sat zone is a level and therefore the value \
+		of the previous day.  THIS CAUSED THE DEEP PREC TO BE > THAN THE SAT ZONE \
+		AT TIMES,  This in turn caused the ratio of the Deep Perc/ sat zone to be \
+		greater than 1 (more C removed that availble) which caused the C trasnfer \
+		to not work (at times the ratio could be very large).
+	|
+
+fast gwflow=
+	MAX((Satzone*RECESS COEFF),0)
+	~	
+	~		|
+
+gwflow=
+	fast gwflow+Slow gwflow
+	~	
+	~		|
+
+INIT UNSATZONE=
+	10
+	~	cm
+	~	Initial water level in the UnSat Zone at the start of the simulation
+	|
+
+INIT SATZONE=
+	0
+	~	cm
+	~	Initial water level in the Sat Zone at the start of the simulation
+	|
+
+infilt to unsatzone=
+	infiltration - unsat leakage
+	~	cm/day
+	~	Daily quantity of infiltration entering the unsaturated zone.
+	|
+
+infiltration=
+	rainmelt - runoff
+	~	cm/day
+	~	Daily infiltration for the watershed.
+	|
+
+RECESS COEFF=
+	-999
+	~	1/day
+	~	recession constant (see Haith et al 1992, p.30) - input as constant
+	|
+
+SEEP COEFF=
+	-999
+	~	1/day
+	~	Seepage constant - input as constant. Normally set to 0 as deep seepage is \
+		not known
+	|
+
+SOIL WATER CAP=
+	-999
+	~	cm
+	~	field capacity of unsaturated zone soils (weighted average of all land \
+		uses/soils in watershed) - input as constant
+	|
+
+UNSAT LEAK COEFF=
+	0.5
+	~	unitless
+	~	Fraction of infiltration that leaks directly to the saturated zone, \
+		bypassing the unsaturated zone- input as constant.
+	|
+
+unsat leakage=
+	UNSAT LEAK COEFF*infiltration
+	~	cm/day
+	~	Daily quantity of infiltration that leaks directly into the saturated \
+		zone, by-passing the unsaturated zone.
+	|
+
+Unsatzone= INTEG (
+	 infilt to unsatzone - evapotrans - percolation,
+		 INIT UNSATZONE)
+	~	cm
+	~	quantity of water in unsaturated zone.
+	|
+
+********************************************************
+	.Input
+********************************************************~
+	|
+
+Meas slow gwflow:INTERPOLATE::=
+	GET DIRECT DATA( calib file name, 'Export', 'A' , 'I3' )
+	~	
+	~		|
+
+Meas Runoff:INTERPOLATE::=
+	GET DIRECT DATA( calib file name, 'Export', 'A' , 'G3' )
+	~	cm/day
+	~	Runoff is calculated by baseflow separation method of Arnold et. al. 1995 \
+		using beta = 0.925.
+	|
+
+lu:
+	Continuous urban, Discontinuous urban, Industrial, Road and rail networks, Port areas\
+		, Airports, Mineral extraction sites, Dump sites, Construction sites, Green urban areas\
+		, Sport and leisure facilities, Non irrigated arable land, Permanently irrigated land\
+		, Rice fields, Vineyards, Fruit trees and berry plantations, Olive groves, High Productivity Pastures\
+		, Mixed Productivity Pastures, Low Productivity Pastures, Annual assoc permanent crops\
+		, Complex cultivation patterns, principally agriculture, Agro forestry areas, Broad leaved forest\
+		, Coniferous forest, Mixed forest, Natural grasslands, Moors and heathland, Sclerophyllous vegetation\
+		, Transitional woodland shrub, Beaches, dunes, sands, Bare rocks, Sparsely vegetated areas\
+		, Burnt areas, Glaciers and perpetual snow, Inland marshes, Exploited Peat bogs, Unexploited Peat bogs\
+		, Salt marshes, Salines, Intertidal flats, Water courses, Water bodies, Coastal lagoons\
+		, Estuaries, Sea and ocean
+	~	index
+	~	list of landuse classes
+	|
+
+lu all:
+	Continuous urban, Discontinuous urban, Industrial, Road and rail networks, Port areas\
+		, Airports, Mineral extraction sites, Dump sites, Construction sites, Green urban areas\
+		, Sport and leisure facilities, Non irrigated arable land, Permanently irrigated land\
+		, Rice fields, Vineyards, Fruit trees and berry plantations, Olive groves, High Productivity Pastures\
+		, Mixed Productivity Pastures, Low Productivity Pastures, Annual assoc permanent crops\
+		, Complex cultivation patterns, principally agriculture, Agro forestry areas, Broad leaved forest\
+		, Coniferous forest, Mixed forest, Natural grasslands, Moors and heathland, Sclerophyllous vegetation\
+		, Transitional woodland shrub, Beaches, dunes, sands, Bare rocks, Sparsely vegetated areas\
+		, Burnt areas, Glaciers and perpetual snow, Inland marshes, Exploited Peat bogs, Unexploited Peat bogs\
+		, Salt marshes, Salines, Intertidal flats, Water courses, Water bodies, Coastal lagoons\
+		, Estuaries, Sea and ocean, VSA
+	~	index
+	~	list of landuse classes as above but with addition of VSA class
+	|
+
+Freshwater:
+	Water courses, Water bodies
+	~	index
+	~	list of freshwater landuse classes
+	|
+
+lu DOC:
+	Coniferous forest, Mixed forest, Broad leaved forest, Natural grasslands, Moors and heathland\
+		, Transitional woodland shrub, Burnt areas, Inland marshes, Exploited Peat bogs, Unexploited Peat bogs
+	~	index
+	~	list of landuse classes that could potentially export DOC
+	|
+
+lu CN adj:
+	 Green urban areas, Non irrigated arable land, Permanently irrigated land, Fruit trees and berry plantations\
+		, High Productivity Pastures, Mixed Productivity Pastures, Low Productivity Pastures\
+		, Annual assoc permanent crops, Complex cultivation patterns, principally agriculture\
+		, Agro forestry areas, Broad leaved forest, Coniferous forest, Mixed forest, Natural grasslands\
+		, Moors and heathland, Sclerophyllous vegetation, Transitional woodland shrub, Sparsely vegetated areas\
+		, Burnt areas
+	~	index
+	~	list of previous landuse classes where changes in CN could affect runoff
+	|
+
+lu CN fixed:
+	Continuous urban, Discontinuous urban, Industrial, Road and rail networks, Port areas\
+		, Airports, Mineral extraction sites, Dump sites, Construction sites, Sport and leisure facilities\
+		, Rice fields, Vineyards, Olive groves, Beaches, dunes, sands, Bare rocks, Glaciers and perpetual snow\
+		, Inland marshes, Exploited Peat bogs, Unexploited Peat bogs, Salt marshes, Salines\
+		, Intertidal flats, Water courses, Water bodies, Coastal lagoons, Estuaries, Sea and ocean
+	~	index
+	~	list of landuse classes where CN cannot be changed
+	|
+
+EvapSeason : Dormant, Growing
+	~	
+	~		|
+
+days before : D1,D2,D3,D4,D5
+	~	
+	~		|
+
+YEAr:INTERPOLATE::=
+	GET DIRECT DATA( time file name, 'Export', 'A' , 'B3' )
+	~	
+	~		|
+
+Meas Baseflow:INTERPOLATE::=
+	GET DIRECT DATA( calib file name, 'Export', 'A' , 'H3' )
+	~	cm
+	~		|
+
+Meas Streamflow:INTERPOLATE::=
+	GET DIRECT DATA( calib file name, 'Export', 'A' , 'E3' )
+	~	cm/day
+	~		|
+
+Measured Water Temperature:INTERPOLATE::=
+	GET DIRECT DATA( calib file name, 'Export', 'A' , 'I3' )
+	~	degrees C
+	~		|
+
+time file name:IS:
+	'Blank'
+	~	
+	~	Read string variable of excel file name containing time data.  Generally this will \
+		be the same file as that containg the met data that forces the model
+		
+		Note this can be either xls or tab format
+	|
+
+MONth:INTERPOLATE::=
+	GET DIRECT DATA( time file name, 'Export', 'A' , 'C3' )
+	~	unitless
+	~	Month, input with data.
+	|
+
+calib file name:IS:
+	'blank'
+	~	
+	~	Read string variable of excel file name containing calibration data.  Note \
+		this can be either xls or tab format
+	|
+
+DAY of month:INTERPOLATE::=
+	GET DIRECT DATA( time file name, 'Export', 'A' , 'D3' )
+	~	unitless
+	~	Day of month, input with data.
+	|
+
+met file name:IS:
+	'Blank'
+	~	
+	~	Read string variable of excel file name containing calibration data.  Note \
+		this can be either xls or tab format
+	|
+
+mean daily air temp:INTERPOLATE::=
+	GET DIRECT DATA( met file name, 'Export', 'A' , 'F3' )
+	~	degrees C
+	~	mean daily air temperature
+	|
+
+PREcip:INTERPOLATE::=
+	GET DIRECT DATA( met file name, 'Export', 'A' , 'E3' )
+	~	cm/day
+	~	Daily precipitation, input as time series data.
+	|
+
+AREA LU[lu]=
+	0
+	~	ha
+	~	area of each landuse - input as constants
+	|
+
+INPUT CN LU[lu]=
+	1
+	~	1/cm
+	~	SCS Curve numbers for average antecedent moisture condition (CN2) by land \
+		use, input as constant by land use - input as constants. NOTE the default \
+		value of 1 causes very low runoff to occur from all land uses and prevents \
+		the model from crashing.  Only Lu value with areas of > 0 will actually \
+		contribute to the simulated runoff
+	|
+
+********************************************************
+	.Optimize
+********************************************************~
+	|
+
+StreamFlowResiduals=
+	IF THEN ELSE(Meas Streamflow = 0, 0,Meas Streamflow - streamflow)
+	~	cm/day
+	~		|
+
+SlowGWResiduals=
+	IF THEN ELSE(Meas slow gwflow = 0, 0,(Meas slow gwflow-Slow gwflow))
+	~	cm/day
+	~		|
+
+SlowGWRMS=
+	(SlowGWResiduals^2)^0.5
+	~	
+	~		|
+
+Runoff Residuals=
+	IF THEN ELSE( Meas Runoff = 0, 0,(Meas Runoff-(Direct Runoff+Channel Discharge)))
+	~	cm/day
+	~		|
+
+Runoff RMS=
+	(Runoff Residuals^2)^0.5
+	~	cm
+	~		|
+
+GroundWaterResiduals=
+	IF THEN ELSE( Meas Baseflow = 0, 0,(Meas Baseflow-gwflow))
+	~	cm/day
+	~		|
+
+Actual Modeled Evapotrans=
+	evapotrans+Channel Lake Evap
+	~	cm/day
+	~		|
+
+StreamFlowRMS=
+	(StreamFlowResiduals^2)^0.5
+	~	cm/day
+	~		|
+
+ElapsedDays=
+	Time-INITIAL TIME
+	~	day
+	~		|
+
+Water Balance 1= INTEG (
+	precip correct-(Max Modeled Evapotrans+Meas Streamflow),
+		0)
+	~	cm
+	~	This shows the long term water balance.  The loss of water is based on the \
+		measured streamflow and the maximum rate of evapotranspiration estimated \
+		as potential evapotranspiration * cover coefficient.  This is used for the \
+		first opitmization of the precip correct factor.
+	|
+
+GroundWaterRMS=
+	(GroundWaterResiduals^2)^0.5
+	~	cm/day
+	~		|
+
+Water Balance 3= INTEG (
+	precip correct-(Actual Modeled Evapotrans+streamflow),
+		0)
+	~	cm
+	~	This shows the long term water balance based on MEASURED streamflow.  This \
+		is not for optimization of the precip correct factor.  Trying to do this \
+		will lead to a positive feedback loop.  This variable is for display \
+		purposes
+	|
+
+Max Modeled Evapotrans=
+	(potential evapotrans*SeasonalCoverCoeff)+Channel Lake Evap
+	~	cm/day
+	~		|
+
+NormalizedWB2=
+	ZIDZ(Water Balance 2, RunLengthYears)
+	~	cm/year
+	~		|
+
+RMSE=
+	(ZIDZ( SumStreamFlowResidualsSquared, ElapsedDays))^0.5
+	~	cm
+	~		|
+
+RunLengthYears=
+	(ElapsedDays)/365.25
+	~	year
+	~		|
+
+StreamFlowResidualsSquared=
+	StreamFlowResiduals^2
+	~	cm/day
+	~		|
+
+Water Temp Residuals Squared=
+	Water Temp Residuals^2
+	~	
+	~		|
+
+SumStreamFlowResidualsSquared= INTEG (
+	StreamFlowResidualsSquared,
+		0)
+	~	
+	~		|
+
+WaterBalance2RMS=
+	IF THEN ELSE(Time=FINAL TIME, (Water Balance 2^2)^0.5, 0)
+	~	
+	~		|
+
+Water Balance 2= INTEG (
+	precip correct-(Actual Modeled Evapotrans+Meas Streamflow),
+		0)
+	~	cm
+	~	This is the same as water balance 1 except that here the \
+		evapotransipiration loss is based on the evapotransipiration losses \
+		exactly as calculated in the model.  Evapotranspiration is limited  by a \
+		feedback to the water in the unsaturated zone, and lake evaporation is \
+		added to the model.  This is used for a second iteration of precip correct \
+		factor
+	|
+
+WaterTempRMS=
+	(Water Temp Residuals^2)^0.5
+	~	
+	~		|
+
+Water Temp Residuals=
+	Measured Water Temperature-Simulated Water Temperature
+	~	degrees C
+	~		|
+
+WaterBalance1RMS=
+	IF THEN ELSE(Time=FINAL TIME, (Water Balance 1^2)^0.5, 0)
+	~	
+	~		|
+
+********************************************************
+	.Streamflow
+********************************************************~
+	|
+
+Stored Runoff=
+	Corrected Runoff*(1-ChannelFlowCoef)
+	~	cm/day
+	~		|
+
+Direct Runoff=
+	Corrected Runoff*ChannelFlowCoef
+	~	cm/day
+	~		|
+
+streamflow=
+	gwflow + Direct Runoff+Channel Discharge
+	~	cm/day
+	~	Daily streamflow at outlet of watershed.
+	|
+
+Channel Storage= INTEG (
+	Stored Runoff-Channel Discharge-Channel Lake Evap,
+		0)
+	~	cm
+	~		|
+
+"Streamflow m3/s"=
+	((streamflow/100)*(Watershed Area*1e+06))/(60*60*24)
+	~	m3/sec
+	~	discharge(m/d)*Area(m)/sec/day
+	|
+
+Channel Discharge=
+	MIN((Channel Storage-Channel Lake Evap),((Channel Storage-Channel Lake Evap)*ChannelFlowCoef\
+		))
+	~	
+	~	IF THEN ELSE(Channel Storage<MaxStorage,Channel Storage*ChannelFlowCoef,Channel \
+		Storage-MaxStorage)
+		If less than max storage discharge at normal rate (a function of the Channel Flow \
+		Coeff)
+		If greater than maximum storage then discharge everthing that above max \
+		storage
+	|
+
+Watershed Area=
+	SUM(AREA LU[lu!])/100
+	~	km2
+	~	watershed area in square km  
+		ha CIN input /100
+	|
+
+Channel Lake Evap=
+	MIN(Channel Storage,(potential evapotrans*(SUM(AREA LU[Freshwater!])/SUM(AREA LU[lu!\
+		]))))
+	~	
+	~	Water courses include lakes im my interpertation of the Corine Classes.  These would \
+		be the where addtional water would be lost by evaporation,while the water \
+		is delayed in reaching the stream channel.
+		
+		NOTE The second term is calculating the proportion of the watershed that is water \
+		and where the maximum potintial rate of Evaporation is expected to occurr. \
+		In this formulation is assumes that the Watercourses are the channels and \
+		lakes that make up the river system.
+		
+		MIN(Channel Storage,(potential evapotrans*(SUM(AREA LU[Only Water!])/SUM(AREA \
+		LU[lu!]))))
+		MIN(Channel Storage,(potential evapotrans*((AREA LU[Water courses]+AREA \
+		LU[Water bodies])/SUM(AREA LU[lu!]))))
+	|
+
+ChannelFlowCoef=
+	1
+	~	
+	~		|
+
+********************************************************
+	.Runoff
+********************************************************~
+	|
+
+CN Adj Factor=
+	0
+	~	
+	~	Value that is added to the CN that are considered to be adjustable in \
+		order to increase or decrease runoff
+	|
+
+Actual CN LU[lu CN fixed]=
+	INPUT CN LU[lu CN fixed] ~~|
+Actual CN LU[lu CN adj]=
+	MAX(MIN(INPUT CN LU[lu CN adj]+CN Adj Factor,99),1)
+	~	
+	~	Allow CN to be ajusted by adding a factor.  These are all pervious lands \
+		where the CN is expected to be below an impervious level NOTE CN is \
+		prevented from being less than 1 or more than 99
+	|
+
+cn3 lu[lu]=
+	Actual CN LU[lu] / ( 0.4036 + 0.0059 * Actual CN LU[lu] )
+	~	1/cm
+	~	SCS curve number, modified for wettest moisture condition 3.
+	|
+
+cn1 lu[lu]=
+	Actual CN LU[lu] / ( 2.334 - 0.01334 * Actual CN LU[lu] )
+	~	1/cm
+	~	SCS curve number, modified for dryest moisture condition 1.
+	|
+
+cn lu[lu]=
+	MIN ( 100, IF THEN ELSE ( Actual CN LU[lu] <= 0, 0, IF THEN ELSE ( snowmelt > 0 :OR:\
+		 ante moisture 5 days >= am2 , cn3 lu
+	[lu] , IF THEN ELSE ( ante moisture 5 days < am1 , cn1 lu[lu] + ( Actual CN LU[lu] -\
+		 cn1 lu[lu] ) * ante moisture 5 days 
+	/ am1 , Actual CN LU[lu] + ( cn3 lu[lu] - Actual CN LU[lu] ) * ( ante moisture 5 days\
+		 - am1 ) / ( am2 - am1 ) ) ) ) )
+	~	1/cm
+	~	SCS curve number, adjusted for antecedent moisture condition (Haith et. \
+		al. 1992,  p.16)
+	|
+
+SeasonSwitch=SAMPLE IF TRUE(
+	 Ante temp 5 days before >= 25 , Time , INITIAL TIME)
+	~	
+	~		|
+
+ExtraDays=
+	10
+	~	
+	~		|
+
+Ante mean daily air temp[T1]= DELAY FIXED (
+	mean daily air temp, 1, 0) ~~|
+Ante mean daily air temp[T2]= DELAY FIXED (
+	mean daily air temp, 2, 0) ~~|
+Ante mean daily air temp[T3]= DELAY FIXED (
+	mean daily air temp, 3, 0) ~~|
+Ante mean daily air temp[T4]= DELAY FIXED (
+	mean daily air temp, 4, 0) ~~|
+Ante mean daily air temp[T5]= DELAY FIXED (
+	mean daily air temp, 5, 0)
+	~	degrees C
+	~		|
+
+Ante temp 5 days before=
+	SUM ( Ante mean daily air temp[Temp days before!])
+	~	
+	~		|
+
+runoff lu[lu]=
+	IF THEN ELSE ( rainmelt > 0.2 * ( 2540 / cn lu[lu] - 25.4) , ( rainmelt - 0.2 * ( 2540\
+		 / cn lu[lu] - 25.4
+	) ) ^ 2 / ( rainmelt + 0.8 * ( 2540 / cn lu[lu] - 25.4) ) , 0)
+	~	cm/day
+	~	Daily surface runoff, by land use.  Computed by the SCS Curve number \
+		equation.
+	|
+
+runoff=
+	SUM ( runoff lu[lu!] * AREA LU[lu!] ) / SUM ( AREA LU[lu!] )
+	~	cm/day
+	~	Daily surface runoff for the watershed (averaged over all land uses).
+	|
+
+Season=
+	IF THEN ELSE( Ante temp 5 days before >= 25  :OR: Time < SeasonSwitch + ExtraDays, 1\
+		 , 0 )
+	~	
+	~	Set to a value of 0 to indicate the dormat season and 1 to indicate the growing \
+		season. The growing season occurs from the begining of StartGrow to the \
+		end of the EndGrow
+		IF THEN ELSE( MONth<StartGrow :OR: MONth>EndGrow , 0 , 1 )
+		IF THEN ELSE( Ante temp 10 days before< 50, 0 , 1 )
+		
+		IF THEN ELSE( dayjul<StartGrow :OR:dayjul>EndGrow , 0 , 1 )
+	|
+
+StartGrow=
+	5
+	~	degrees C
+	~	First month of growing season
+	|
+
+EndGrow=
+	8
+	~	month
+	~	Last Month of Growing Season
+	|
+
+Corrected Runoff=
+	runoff*Runoff Corr Factor
+	~	
+	~		|
+
+Ante Precip[D1]= DELAY FIXED (
+	 rainmelt , 1, 0) ~~|
+Ante Precip[D2] = DELAY FIXED( rainmelt , 2, 0) ~~|
+Ante Precip[D3] = DELAY FIXED( rainmelt , 3, 0) ~~|
+Ante Precip[D4] = DELAY FIXED( rainmelt , 4, 0) ~~|
+Ante Precip[D5] = DELAY FIXED( rainmelt , 5, 0)
+	~	cm/day
+	~	rain + snowmelt for the previous 5 days.
+	|
+
+Runoff Corr Factor=
+	1
+	~	
+	~		|
+
+am1 = IF THEN ELSE ( Season = 1, 3.56, 1.27)
+	~	cm
+	~	Lower breakpoint in Curve number vs. antecedent moisture function (see \
+		Haith et al 1992, p. 16)
+	|
+
+am2 = IF THEN ELSE ( Season = 1, 5.33, 2.79)
+	~	cm
+	~	Upper breakpoint in Curve number vs. antecedent moisture function (see \
+		Haith et al 1992, p. 16)
+	|
+
+ante moisture 5 days = SUM ( Ante Precip[days before!] )
+	~	cm
+	~	Sum of the rain + snowmelt occurring over the previous 5 days
+	|
+
+********************************************************
+	.WaterTemp
+********************************************************~
+	|
+
+Slope Warming=
+	0.261665
+	~	
+	~	Constant that describes the daily warming of water temperature as a function of the \
+		difference between the air and water temperature
+		Based on calibarion of Fyrison against Hype model temperature
+	|
+
+Transfer Function=
+	IF THEN ELSE( (mean daily air temp - Simulated Water Temperature) >= 0,
+		(mean daily air temp - Simulated Water Temperature) * Slope Warming,
+		(mean daily air temp - Simulated Water Temperature) * Slope Cooling
+	)
+	~	C/d
+	~	Calculates the expeced daily change in water temperature based on the \
+		difference between air temp and water temp. When air temp > water temp the \
+		transfer is positive (heating).  When air temp < water temp the transfer \
+		is negative (cooling).
+	|
+
+Inital Water Temperature= INITIAL(
+	Measured Water Temperature)
+	~	
+	~		|
+
+Simulated Water Temperature= INTEG (
+	Heat Transfer,
+		Inital Water Temperature)
+	~	degrees C
+	~	Water temperature is simulated by adding the the amount of heat added or \
+		lost from the water temp of the previous time step.
+	|
+
+Slope Cooling=
+	0.352734
+	~	C/d
+	~	Constant that describes the daily cooling of water temperature as a function of the \
+		difference between the air and water temperature
+		Based on calibarion of Fyrison against Hype model temperature
+	|
+
+Freeze Stop=
+	IF THEN ELSE( (Simulated Water Temperature >= 0) :OR: (Transfer Function >= 0) , 
+		1, 
+		0
+	)
+	~	
+	~	This is used to determing when heat transfer can occur, and it \
+		specifically prevents further cooling of the water once the water has \
+		cooled to 0 C.  Tranfer occurs when the simulated water temp is > 0 or \
+		when the Transfer function is > 0 (warming)  Thus if the water temp is < 0 \
+		but the transfer is warming tranfer will occur.
+	|
+
+Heat Transfer=
+	Transfer Function*Freeze Stop
+	~	C/d
+	~	Cooling is stoped in the presence of freezing
+	|
+
+********************************************************
+	.time
+********************************************************~
+	|
+
+YearDelay1= DELAY FIXED (
+	YEAr, 1 , YEAr)
+	~	
+	~		|
+
+MonthSwitch=
+	IF THEN ELSE(MONth<>MonthDelay1 :OR: Time=FINAL TIME, 1 , 0 )
+	~	
+	~		|
+
+MonthDelay1= DELAY FIXED (
+	MONth, 1 , MONth)
+	~	
+	~		|
+
+YearSwitch=
+	IF THEN ELSE(YEAr=YearDelay1+1 :OR: Time=FINAL TIME, 1 , 0 )
+	~	
+	~		|
+
+INITIAL YEAR=
+	-999
+	~	unitless
+	~	Initial year of the simulation, input as a constant.
+	|
+
+time start cal yr=SAMPLE IF TRUE(
+	 MONth = 1 :AND: DAY of month = 1, Time , INITIAL TIME)
+	~	day
+	~	Timestep corresponding to the first day of the current calendar year.
+	|
+
+dayjul=
+	IF THEN ELSE( YEAr = INITIAL YEAR , Time - time start cal yr + INTEGER(365*(INITIAL MONTH\
+		 - 1)/12) + INITIAL DAY OF MONTH - 1, Time - time start cal yr + 1)
+	~	unitless
+	~	Julian day (Jan 1=1, Dec 31=365 or 366 for leap year)
+	|
+
+num days=
+	IF THEN ELSE ( MONth = 9 :OR: MONth = 4 :OR: MONth = 6 :OR: MONth = 11, 30, IF THEN ELSE\
+		 ( MONth = 1 :OR: MONth = 3 :OR: MONth = 5 :OR: MONth = 7 :OR: MONth  = 8 :OR: MONth\
+		 = 10 :OR: MONth = 12, 31, IF THEN ELSE ( LEAPTEST(YEAr) = 1, 29, 28) ) )
+	~	unitless
+	~	number of days in month
+	|
+
+FINAL DAY OF MONTH=
+	-999
+	~	unitless
+	~	Final day of month of the simulation, input as a constant.
+	|
+
+FINAL MONTH=
+	-999
+	~	unitless
+	~	Final month of the simulation, input as a constant.
+	|
+
+Base Calendar Year= TIME BASE (
+	 1900, 0.0027378)
+	~	 [1900,0.0027378]
+	~	Defines an annual (365.25 days) timebase for the daily model
+	|
+
+Base Month = TIME BASE ( 0.967123, 0.0328767)
+	~	unitless [0.967123,0.0328767]
+	~	Defines a monthly (30.416666 (365/12) days) time base for the daily model.
+	|
+
+Base Week= TIME BASE (
+	0, 0.142857)
+	~	unitless [0,0.142857]
+	~	Defines a weekly (7-day) timebase for the daily model
+	|
+
+TIME 2 YEAR LOOKUP(
+	[(1900,0)-(2100,80000)],(1900,0),(1901,366),(1902,731),(1903,1096),(1904,1461),(1905\
+		,1827),(1906,2192),(1907,2557),(1908,2922),(1909,3288),(1910,3653),(1911,4018),(1912\
+		,4383),(1913,4749),(1914,5114),(1915,5479),(1916,5844),(1917,6210),(1918,6575),(1919\
+		,6940),(1920,7305),(1921,7671),(1922,8036),(1923,8401),(1924,8766),(1925,9132),(1926\
+		,9497),(1927,9862),(1928,10227),(1929,10593),(1930,10958),(1931,11323),(1932,11688)\
+		,(1933,12054),(1934,12419),(1935,12784),(1936,13149),(1937,13515),(1938,13880),(1939\
+		,14245),(1940,14610),(1941,14976),(1942,15341),(1943,15706),(1944,16071),(1945,16437\
+		),(1946,16802),(1947,17167),(1948,17532),(1949,17898),(1950,18263),(1951,18628),(1952\
+		,18993),(1953,19359),(1954,19724),(1955,20089),(1956,20454),(1957,20820),(1958,21185\
+		),(1959,21550),(1960,21915),(1961,22281),(1962,22646),(1963,23011),(1964,23376),(1965\
+		,23742),(1966,24107),(1967,24472),(1968,24837),(1969,25203),(1970,25568),(1971,25933\
+		),(1972,26298),(1973,26664),(1974,27029),(1975,27394),(1976,27759),(1977,28125),(1978\
+		,28490),(1979,28855),(1980,29220),(1981,29586),(1982,29951),(1983,30316),(1984,30681\
+		),(1985,31047),(1986,31412),(1987,31777),(1988,32142),(1989,32508),(1990,32873),(1991\
+		,33238),(1992,33603),(1993,33969),(1994,34334),(1995,34699),(1996,35064),(1997,35430\
+		),(1998,35795),(1999,36160),(2000,36526),(2001,36891),(2002,37256),(2003,37621),(2004\
+		,37986),(2005,38352),(2006,38717),(2007,39082),(2008,39447),(2009,39813),(2010,40178\
+		),(2011,40543),(2012,40908),(2013,41274),(2014,41639),(2015,42004),(2016,42369),(2017\
+		,42735),(2018,43100),(2019,43465),(2020,43830),(2021,44196),(2022,44561),(2023,44926\
+		),(2024,45291),(2025,45657),(2026,46022),(2027,46387),(2028,46752),(2029,47118),(2030\
+		,47483),(2031,47848),(2032,48213),(2033,48579),(2034,48944),(2035,49309),(2036,49674\
+		),(2037,50040),(2038,50405),(2039,50770),(2040,51135),(2041,51501),(2042,51866),(2043\
+		,52231),(2044,52596),(2045,52962),(2046,53327),(2047,53692),(2048,54057),(2049,54423\
+		),(2050,54788),(2051,55153),(2052,55518),(2053,55884),(2054,56249),(2055,56614),(2056\
+		,56979),(2057,57345),(2058,57710),(2059,58075),(2060,58440),(2061,58806),(2062,59171\
+		),(2063,59536),(2064,59901),(2065,60267),(2066,60632),(2067,60997),(2068,61362),(2069\
+		,61728),(2070,62093),(2071,62458),(2072,62823),(2073,63189),(2074,63554),(2075,63919\
+		),(2076,64284),(2077,64650),(2078,65015),(2079,65380),(2080,65745),(2081,66111),(2082\
+		,66476),(2083,66841),(2084,67206),(2085,67572),(2086,67937),(2087,68302),(2088,68667\
+		),(2089,69033),(2090,69398),(2091,69763),(2092,70128),(2093,70494),(2094,70859),(2095\
+		,71224),(2096,71589),(2097,71955),(2098,72320),(2099,72685))
+	~	unitless
+	~	internal lookup used to convert input values for initial and final year, \
+		month, and day of month to initial and final time.
+	|
+
+INITIAL DAY OF MONTH=
+	-999
+	~	unitless
+	~	Initial day of month of the simulation, input as a constant.
+	|
+
+TIME 2 MONTH LEAP LOOKUP(
+	[(0,0)-(20,400)],(1,0),(2,31),(3,60),(4,91),(5,121),(6,152),(7,182),(8,213),(9,244),\
+		(10,274),(11,305),(12,335))
+	~	unitless
+	~	internal lookup used to convert input values for initial and final year, \
+		month, and day of month to initial and final time.
+	|
+
+TIME 2 MONTH LOOKUP(
+	[(0,0)-(20,400)],(1,0),(2,31),(3,59),(4,90),(5,120),(6,151),(7,181),(8,212),(9,243),\
+		(10,273),(11,304),(12,334))
+	~	unitless
+	~	internal lookup used to convert input values for initial and final year, \
+		month, and day of month to initial and final time.\!\!
+	|
+
+INITIAL MONTH=
+	-999
+	~	unitless
+	~	Initial month of the simulation, input as a constant.
+	|
+
+FINAL YEAR=
+	-999
+	~	unitless
+	~	Final year of the simulation, input as a constant.
+	|
+
+********************************************************
+	.Control
+********************************************************~
+		Simulation Control Paramaters
+	|
+
+FINAL TIME=
+		TIME 2 YEAR LOOKUP(FINAL YEAR)+IF THEN ELSE(LEAPTEST(FINAL YEAR)=1,TIME 2 MONTH LEAP LOOKUP\
+		(FINAL MONTH),TIME 2 MONTH LOOKUP(FINAL MONTH))+FINAL DAY OF MONTH+1
+	~	day
+	~		|
+
+INITIAL TIME =
+	TIME 2 YEAR LOOKUP(INITIAL YEAR)+IF THEN ELSE(LEAPTEST(INITIAL YEAR)=1,TIME 2 MONTH LEAP LOOKUP\
+		(INITIAL MONTH),TIME 2 MONTH LOOKUP(INITIAL MONTH))+INITIAL DAY OF MONTH
+	~	day
+	~	The initial time for the simulation.
+	|
+
+SAVEPER  = 
+        TIME STEP
+	~	day [0,?]
+	~	The frequency with which output is stored.
+	|
+
+TIME STEP  = 1
+	~	day [0,?]
+	~	The time step for the simulation.
+	|
+
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*Hydrologic Model
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-0|-1--1--1|-1--1--1|96,96,88,0
+12,1,0,1426,519,334,316,3,128,0,4,-1,2,0,0,-1--1--1,255-255-255,|||0-0-0,0,0,0,0,0,0
+12,2,0,1474,-16,280,159,3,131,0,0,-1,0,0,0,0,0,0,0,0,0
+12,3,0,786,-57,282,120,3,0,0,4,-1,2,0,0,-1--1--1,255-255-255,|||0-0-0,0,0,0,0,0,0
+12,4,0,790,498,269,293,3,128,0,0,-1,2,0,0,0,0,0,0,0,0
+12,5,0,1374,-256,92,23,3,0,0,4,-1,2,0,0,0-0-0,255-255-255,|||0-0-0,0,0,0,0,0,0
+10,6,precip correct,681,-68,56,11,8,3,0,1,0,0,0,0,0-0-255,0-0-0,||B|0-0-0,0,0,0,0,0,0
+10,7,rain,681,-9,17,11,8,3,0,1,0,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,8,rainmelt,693,42,39,11,8,3,0,17,0,0,0,0,0-0-255,0-0-0,||BI|0-0-0,0,0,0,0,0,0
+10,9,mean daily air temp,1375,-260,63,18,8,3,0,19,-1,0,0,0,0-0-255,0-0-0,||BI|255-0-0,0,0,0,0,0,0
+10,10,snow,931,-133,24,11,8,3,0,1,0,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,11,snowmelt,916,36,39,11,8,3,0,1,0,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,12,streamflow,1196,987,75,30,0,3,0,28,0,2,0,0,0-0-0,255-255-255,|14|BI|0-0-0,0,0,0,0,0,0
+10,13,Snowpack,929,-60,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,14,MELT COEFF,808,-40,51,10,8,3,0,11,0,0,0,0,0-0-255,0-0-0,|10||0-0-255,0,0,0,0,0,0
+10,15,evapotrans,1489,109,56,11,8,3,0,51,0,0,0,0,0-0-255,0-0-0,Helvetica||BI|0-0-0,0,0,0,0,0,0
+10,16,runoff lu,570,684,40,11,8,3,0,17,0,0,0,0,0-0-255,0-0-0,||BI|0-0-0,0,0,0,0,0,0
+10,17,SOIL WATER CAP,1247,422,50,16,8,3,0,11,0,0,0,0,0-0-255,0-0-0,|10||0-0-255,0,0,0,0,0,0
+10,18,Unsatzone,1350,398,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,19,Satzone,1355,543,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,20,RECESS COEFF,1157,482,59,10,8,3,0,11,0,0,0,0,0-0-255,0-0-0,|10||0-0-255,0,0,0,0,0,0
+10,21,percolation,1348,447,45,11,8,3,0,1,0,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,22,runoff,671,732,33,11,8,3,0,49,0,0,0,0,0-0-255,0-0-0,Helvetica||BI|0-0-0,0,0,0,0,0,0
+10,23,infilt to unsatzone,1352,329,41,18,8,3,0,1,0,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+1,24,23,21,1,7,0,2,1,0,0,255-0-0,|||0-0-0,1|(1307,368)|
+1,25,15,21,1,7,0,2,1,0,0,255-0-0,|||0-0-0,1|(1504,389)|
+1,26,9,7,1,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(934,-164)|
+1,27,9,10,0,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(0,0)|
+1,28,9,11,1,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(1112,-134)|
+1,29,14,11,1,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(826,1)|
+12,30,0,1164,-339,210,26,8,4,0,45,-1,0,0,0,0-0-255,255-255-255,Arial|18|B|0-0-0,0,0,0,0,0,0
+GWLF Hydrologic Water Balance
+1,31,7,8,4,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(681,16)|
+1,32,6,7,4,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(681,-39)|
+1,33,10,13,4,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(931,-101)|
+10,34,deep seep,1717,773,48,13,8,3,0,25,-1,0,0,0,0-0-255,0-0-0,|14|BI|0-0-0,0,0,0,0,0,0
+1,35,23,18,4,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(1352,362)|
+10,36,AREA LU,783,681,45,10,8,2,0,11,-1,0,0,0,0-0-255,0-0-0,|10||0-0-255,0,0,0,0,0,0
+1,37,36,22,0,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(0,0)|
+1,38,13,11,4,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(929,-8)|
+1,39,21,18,36,0,0,0,3,64,0,0-0-0,|||0-0-0,1|(1348,427)|
+10,40,SEEP COEFF,1634,688,49,10,8,3,0,11,-1,0,0,0,0-0-255,0-0-0,|10||0-0-255,0,0,0,0,0,0
+1,41,40,34,1,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(1636,699)|
+1,42,17,21,1,0,0,12,1,64,0,0-0-0,|||0-0-0,1|(1285,446)|
+10,43,potential evapotrans,1462,20,44,18,8,3,0,1,-1,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+1,44,9,43,1,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(1466,-54)|
+1,45,34,19,1,7,0,2,1,64,0,255-0-0,|||0-0-0,1|(1628,593)|
+1,46,59,16,0,0,0,12,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+1,47,11,8,4,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(804,36)|
+10,48,unsat leakage,1455,459,75,30,0,3,0,1,-1,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,49,UNSAT LEAK COEFF,1572,428,52,16,8,3,0,11,-1,0,0,0,0-0-255,0-0-0,|10||0-0-255,0,0,0,0,0,0
+1,50,49,48,1,0,0,12,3,0,0,0-0-0,|||0-0-0,1|(1542,455)|
+1,51,48,19,1,0,0,0,1,0,0,0-0-0,|||0-0-0,1|(1424,492)|
+10,52,infiltration,1352,252,47,11,8,3,0,17,-1,0,0,0,0-0-255,0-0-0,||B|128-128-128,0,0,0,0,0,0
+1,53,48,23,1,7,0,2,3,0,0,255-0-0,|||0-0-0,1|(1409,362)|
+1,54,22,52,1,7,0,2,3,0,0,255-0-0,|||0-0-0,1|(1147,453)|
+10,55,PRECIP CORRECT FACTOR,588,-117,40,22,8,3,0,10,0,0,0,0,0-0-0,0-0-0,|10||0-0-255,0,0,0,0,0,0
+10,56,PREcip,681,-151,33,11,8,3,0,3,0,0,0,0,0-0-255,255-255-255,|||255-0-0,0,0,0,0,0,0
+1,57,55,6,1,0,0,2,3,64,0,0-0-0,|||0-0-0,1|(617,-96)|
+1,58,56,6,1,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(680,-116)|
+10,59,cn lu,705,646,22,11,8,3,0,1,0,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,60,INPUT CN LU,981,474,52,10,8,3,0,43,0,0,0,0,0-0-255,0-0-0,Helvetica|10||0-0-255,0,0,0,0,0,0
+10,61,ante moisture 5 days,635,513,60,18,8,3,0,1,0,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,62,cn1 lu,787,619,29,11,8,3,0,51,0,0,0,0,0-0-255,0-0-0,Helvetica|||0-0-0,0,0,0,0,0,0
+10,63,cn3 lu,789,594,29,11,8,3,0,51,0,0,0,0,0-0-255,0-0-0,Helvetica|||0-0-0,0,0,0,0,0,0
+10,64,am1,662,596,19,11,8,3,0,1,0,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,65,am2,701,581,19,11,8,3,0,1,0,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,66,Ante Precip,612,412,48,11,8,3,0,1,-1,0,0,0,0-0-255,0-0-0,|||0-0-0,0,0,0,0,0,0
+1,67,120,64,1,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(757,525)|
+1,68,120,65,1,0,0,1,1,0,0,0-0-0,|||0-0-0,1|(754,573)|
+1,69,64,59,1,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(673,624)|
+1,70,65,59,1,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(692,608)|
+1,71,62,59,1,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(758,622)|
+1,72,63,59,1,0,0,12,1,0,0,0-0-0,|||0-0-0,1|(744,602)|
+1,73,8,66,1,0,0,12,3,0,0,0-0-0,|||0-0-0,1|(621,262)|
+1,74,61,59,1,0,0,12,3,64,0,0-0-0,|||0-0-0,1|(620,584)|
+1,75,52,23,4,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(1352,287)|
+1,76,11,59,4,0,0,12,1,64,0,0-0-0,|||0-0-0,1|(916,646)|
+1,77,18,15,4,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(1489,398)|
+1,78,15,18,36,0,0,0,3,64,0,0-0-0,|||0-0-0,1|(1489,398)|
+12,79,0,788,-191,52,11,0,4,0,25,0,0,0,0,0-128-0,0-0-0,|14|B|0-0-0,0,0,0,0,0,0
+Precipitation
+12,80,0,810,186,61,11,0,4,0,25,0,0,0,0,0-128-0,0-0-0,|14|B|0-0-0,0,0,0,0,0,0
+Surface Runoff
+12,81,0,1371,-317,39,11,8,4,0,25,0,0,0,0,0-128-0,0-0-0,|14|B|0-0-0,0,0,0,0,0,0
+Air Temp
+12,82,0,1484,-190,29,12,3,4,0,29,0,0,0,0,160-160-160,255-255-255,|14|B|0-0-0,0,0,0,0,0,0
+ET
+12,83,0,1427,184,58,13,3,4,0,29,0,0,0,0,160-160-160,255-255-255,|14|B|0-0-0,0,0,0,0,0,0
+Groundwater
+1,84,66,61,1,0,0,12,3,64,0,0-0-0,|||128-128-128,1|(618,458)|
+10,85,INIT SNOWPACK,1000,-106,49,16,8,3,0,10,-1,0,0,0,0-0-0,0-0-0,|10||0-0-255,0,0,0,0,0,0
+1,86,52,48,1,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(1474,341)|
+1,87,8,52,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+10,88,INIT UNSATZONE,1634,344,51,16,8,3,17,10,-1,0,0,0,0-0-0,0-0-0,|10||0-0-255,0,0,0,0,0,0
+10,89,INIT SATZONE,1631,479,57,10,8,3,17,10,-1,0,0,0,0-0-0,0-0-0,|10||0-0-255,0,0,0,0,0,0
+10,90,dayjul,1675,-156,37,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+12,91,0,1204,-271,17,11,8,0,0,0,-1,0,0,0,0,0,0,0,0,0
+10,92,Evap Constant,1583,68,59,11,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,93,92,43,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+10,94,Runoff Corr Factor,955,675,50,18,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,95,Latitude,1589,-154,34,11,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,96,LatitudeRdn,1581,-91,50,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,97,DayRdn,1673,-89,35,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,98,SolarDeclinationRdn,1682,-35,81,11,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,99,95,96,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+1,100,97,98,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+10,101,Daylength,1619,19,41,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,102,96,101,1,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(1579,-48)|
+1,103,98,101,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+1,104,101,43,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+1,105,90,97,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+10,106,EvapCoverCoeff,1302,-92,67,11,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,107,DormantCoeff,1377,-28,58,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,108,GrowingCoeff,1318,1,58,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,109,106,107,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+1,110,106,108,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+10,111,AREA LU,1222,-48,54,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,112,111,107,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+1,113,111,108,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+10,114,SeasonalCoverCoeff,1365,57,81,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,115,108,114,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+1,116,107,114,1,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(1377,26)|
+10,117,Season,1220,-11,42,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,118,117,114,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+1,119,114,15,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+10,120,Season,857,526,31,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,121,Channel Storage,822,1011,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,122,ChannelFlowCoef,632,1082,75,30,0,3,0,2,0,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,123,85,13,0,0,0,0,0,0,1,-1--1--1,,1|(0,0)|
+1,124,88,18,1,17,0,0,0,0,1,-1--1--1,,1|(1497,356)|
+1,125,89,19,0,17,0,0,0,0,1,-1--1--1,,1|(0,0)|
+10,126,Corrected Runoff,821,729,41,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,127,22,126,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,128,94,126,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,129,"Streamflow m3/s",1410,1138,46,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,130,Watershed Area,1472,1057,64,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,131,130,129,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,132,met file name,919,-295,53,11,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,133,132,56,1,0,0,2,1,128,0,0-0-0,|||0-0-0,1|(753,-240)|
+1,134,132,9,0,0,0,2,1,128,0,0-0-0,|||0-0-0,1|(0,0)|
+10,135,deep percolation,1350,632,45,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,136,DEEP GW CAP,1503,664,55,10,8,131,0,10,0,0,0,0,0-0-0,0-0-0,|10||0-0-255,0,0,0,0,0,0
+10,137,SLOW RECESS COEFF,1538,763,57,16,8,3,0,10,0,0,0,0,0-0-0,0-0-0,|10||0-0-255,0,0,0,0,0,0
+10,138,Deep Satzone,1350,698,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,139,fast gwflow,1202,543,47,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,140,Slow gwflow,1350,782,53,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,141,19,135,1,0,0,0,0,128,0,-1--1--1,,1|(1370,584)|
+1,142,19,139,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,143,20,139,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,144,135,138,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,145,136,135,1,0,0,0,0,128,0,-1--1--1,,1|(1463,635)|
+1,146,138,140,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,147,137,140,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,148,gwflow,1201,781,36,13,8,3,0,24,0,0,0,0,0-0-0,0-0-0,|14|BI|0-0-0,0,0,0,0,0,0
+1,149,139,148,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,150,140,148,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,151,139,19,1,0,0,0,0,128,0,-1--1--1,,1|(1280,512)|
+1,152,138,135,1,1,0,2,1,128,0,255-0-0,|||0-0-0,1|(1391,675)|
+1,153,140,138,1,1,0,2,1,128,0,255-0-0,|||0-0-0,1|(1295,728)|
+10,154,Channel Lake Evap,442,753,53,22,8,3,0,24,0,0,0,0,0-0-0,0-0-0,|14|BI|0-0-0,0,0,0,0,0,0
+1,155,121,154,4,0,0,0,0,128,0,-1--1--1,,3|(822,889)|(435,889)|(435,832)|
+10,156,potential evapotrans,340,647,50,18,8,130,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,157,AREA LU,266,718,54,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,158,156,154,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,159,157,154,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,160,154,121,1,1,0,2,1,128,0,255-0-0,|||0-0-0,1|(582,891)|
+1,161,23,15,1,1,0,2,1,128,0,255-0-0,|||0-0-0,1|(1329,174)|
+1,162,19,34,4,0,0,0,0,128,0,-1--1--1,,3|(1556,540)|(1718,540)|(1718,650)|
+10,163,Channel Discharge,822,1092,51,22,8,131,0,24,0,0,0,0,0-0-0,0-0-0,|14|BI|0-0-0,0,0,0,0,0,0
+1,164,121,163,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,165,122,163,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,166,163,121,1,1,0,2,1,64,0,255-0-0,|||0-0-0,1|(869,1065)|
+1,167,6,10,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,168,11,13,1,1,0,2,1,64,0,255-0-0,|||0-0-0,1|(859,-12)|
+10,169,AREA LU,1471,994,54,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,170,169,130,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,171,154,163,1,1,0,2,1,64,0,255-0-0,|||0-0-0,1|(599,937)|
+10,172,Qs Total,1196,1085,40,22,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,173,135,19,1,1,0,2,1,64,0,255-0-0,|||0-0-0,1|(1441,601)|
+10,174,Stored Runoff,823,880,58,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,175,Direct Runoff,1003,912,55,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,176,ChannelFlowCoef,668,808,82,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,177,126,174,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,178,126,175,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,179,176,174,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,180,176,175,1,0,0,0,0,64,0,-1--1--1,,1|(795,824)|
+1,181,175,12,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,182,148,12,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,183,174,121,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,184,12,172,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,185,163,12,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,186,12,129,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,187,theta crit,1256,110,36,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,188,etrestrict,1372,109,36,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,189,17,188,1,17,0,2,3,64,0,255-0-0,|||0-0-0,1|(1253,263)|
+1,190,187,188,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,191,18,188,1,17,0,2,1,64,0,255-0-0,|||0-0-0,1|(1422,254)|
+1,192,188,15,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,193,Ante mean daily air temp,985,244,63,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,194,9,193,1,0,0,0,0,128,0,-1--1--1,,1|(1175,-86)|
+10,195,Ante temp 5 days before,981,335,49,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,196,193,195,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,197,SeasonSwitch,859,389,56,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,198,Time,861,288,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,199,198,197,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,200,INITIAL TIME,699,302,43,18,8,2,17,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,201,200,197,0,17,0,0,0,192,1,-1--1--1,,1|(0,0)|
+1,202,8,16,1,0,0,0,0,192,0,-1--1--1,,1|(539,346)|
+1,203,16,22,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,204,ExtraDays,746,454,42,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,205,195,197,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,206,18,21,1,17,0,2,1,192,0,255-0-0,|||0-0-0,1|(1355,438)|
+10,207,Actual CN LU,936,573,58,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,208,60,207,1,0,0,0,0,192,0,-1--1--1,,1|(952,517)|
+1,209,207,63,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,210,207,62,1,0,0,0,0,192,0,-1--1--1,,1|(863,613)|
+1,211,207,59,1,0,0,0,0,192,0,-1--1--1,,1|(832,645)|
+10,212,CN Adj Factor,1012,516,60,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,213,212,207,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,214,INIT DEEP SATZONE,1486,724,42,17,8,3,17,10,-1,0,0,0,0-0-0,0-0-0,|11||0-0-255,0,0,0,0,0,0
+1,215,214,138,0,17,0,2,1,192,1,255-0-0,|||0-0-0,1|(0,0)|
+10,216,dayjul,857,558,37,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,217,195,120,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,218,204,120,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,219,197,120,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,220,Time,819,440,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,221,220,120,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,222,43,15,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,223,135,140,0,2,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,224,recharge,1353,484,35,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,225,21,224,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,226,48,224,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,227,224,19,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,228,Meas Streamflow,1194,1170,42,19,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,229,228,172,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*DOC
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-0|-1--1--1|255-255-255|96,96,79,0
+10,1,available C in unsatzone,574,606,53,27,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,2,andecomp,840,346,43,11,8,3,0,4,0,0,0,0,0-0-0,128-128-192,|||0-0-0,0,0,0,0,0,0
+10,3,aerdecomp rate,280,358,61,11,8,3,0,4,0,0,0,0,0-0-0,128-128-192,|||0-0-0,0,0,0,0,0,0
+10,4,INIT C,437,602,31,11,8,2,0,7,-1,0,0,0,128-128-128,255-192-0,|||128-128-128,0,0,0,0,0,0
+10,5,soil temp,677,292,40,20,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,6,perc loss,636,701,38,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,7,6,1,1,0,0,0,0,0,0,-1--1--1,,1|(618,666)|
+10,8,runoff loss,894,595,44,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,9,8,1,1,0,0,0,0,0,0,-1--1--1,,1|(745,587)|
+10,10,fast rate,892,642,33,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,11,10,8,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,12,SOIL WATER CAP,1036,457,66,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,13,12,8,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,14,Unsatzone,1055,499,54,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,15,14,8,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,16,1,6,1,0,0,0,0,0,0,-1--1--1,,1|(628,639)|
+10,17,slow rate,688,648,37,11,8,3,0,4,-1,0,0,0,0-0-0,128-128-192,|||0-0-0,0,0,0,0,0,0
+1,18,17,6,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,19,fast gwflow,822,1031,58,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,20,C conc in runoff lu DOC,1194,651,58,18,8,3,0,4,0,0,0,0,0-0-0,255-128-0,|||0-0-0,0,0,0,0,0,0
+1,21,8,20,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,22,previous conc in satzone,789,937,50,32,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,23,loss in fast gwflow,635,1069,75,30,0,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,24,conc in satzone,636,884,62,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,25,24,22,1,0,0,0,0,0,0,-1--1--1,,1|(733,890)|
+1,26,24,23,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,27,19,23,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,28,percolation,730,752,56,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,29,22,24,1,0,0,0,0,0,0,-1--1--1,,1|(683,912)|
+10,30,loss in slow gwflow,519,1067,48,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,31,conc in deep satzone,517,882,52,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,32,previous conc in deep satzone,395,929,48,30,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,33,deep percolation,351,776,51,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,34,Deep Satzone,321,830,39,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,35,32,31,1,0,0,0,0,0,0,-1--1--1,,1|(399,916)|
+1,36,31,32,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,37,31,30,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,38,Slow gwflow,349,1043,64,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,39,38,30,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,40,total loss in gwflow,562,1122,46,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,41,23,40,1,0,0,0,0,0,0,-1--1--1,,1|(618,1094)|
+1,42,30,40,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,43,C conc in gwflow,564,1178,40,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,44,40,43,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,45,SAT CAP,895,523,43,11,8,3,0,4,-1,0,0,0,0-0-0,128-128-192,|||0-0-0,0,0,0,0,0,0
+1,46,45,8,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,47,runoff lu DOC,1019,595,58,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,48,47,8,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,49,runoff lu,1158,512,47,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,50,49,47,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,51,47,20,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,52,INIT C conc satzone,927,883,52,18,8,3,0,4,-1,0,0,0,0-0-0,255-192-0,|||0-0-0,0,0,0,0,0,0
+10,53,INIT C conc deep satzone,239,907,52,18,8,3,0,4,-1,0,0,0,0-0-0,255-192-0,|||0-0-0,0,0,0,0,0,0
+10,54,loss in deep perc,515,701,48,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,55,33,54,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,56,AREA LU,1193,565,54,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,57,56,47,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,58,Satzone,748,810,44,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,59,6,24,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,60,28,24,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,61,33,31,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,62,54,31,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,63,58,24,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,64,34,31,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,65,4,1,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+1,66,52,22,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+1,67,53,32,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,68,AREA LU,710,1183,54,11,8,2,0,2,-1,0,0,0,0-0-0,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,69,68,43,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,70,Watershed Area,710,1142,49,18,8,2,0,2,-1,0,0,0,0-0-0,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,71,70,43,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,72,gwflow,696,1213,42,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,73,72,43,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,74,activeE,829,390,31,11,8,3,0,4,-1,0,0,0,0-0-0,128-128-192,|||0-0-0,0,0,0,0,0,0
+10,75,ratio,891,689,20,11,8,3,0,4,-1,0,0,0,0-0-0,128-128-192,|||0-0-0,0,0,0,0,0,0
+1,76,75,10,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,77,17,10,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,78,cum peat decomp,418,534,41,21,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,79,data est DOC load from DOC lu,137,542,63,25,8,3,0,4,0,0,0,0,0-0-0,255-192-128,|||0-0-0,0,0,0,0,0,0
+10,80,bias total decomp,281,591,37,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,81,78,80,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,82,79,80,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,83,luadj,382,703,21,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,84,83,54,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,85,MINSOIL ADJ,248,695,61,11,8,3,0,5,-1,0,0,0,128-128-192,128-128-192,|||0-0-0,0,0,0,0,0,0
+1,86,85,83,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,87,minsoil lu,299,644,39,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,88,87,83,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,89,AREA LU,296,738,54,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,90,89,83,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,91,17,54,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,92,54,1,1,0,0,0,0,64,0,-1--1--1,,1|(544,669)|
+10,93,daymelt,801,254,33,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,94,93,5,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,95,Snowpack,901,201,54,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,96,95,93,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,97,mean daily air temp,677,177,60,18,8,130,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,98,97,5,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,99,FINAL TIME,54,619,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,100,99,80,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,101,Time,39,583,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,102,101,80,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,103,1,8,1,0,0,0,0,64,0,-1--1--1,,1|(771,616)|
+1,104,1,54,1,0,0,0,0,64,0,-1--1--1,,1|(508,656)|
+10,105,total DOC loss,1101,996,60,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,106,DOC conc in streamflow,1619,1103,54,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,107,AREA LU,1790,1113,54,11,8,2,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||128-128-128,0,0,0,0,0,0
+1,108,107,106,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,109,gwflow,1681,1185,42,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,110,109,106,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,111,streamflow,1743,1036,56,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,112,111,106,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,113,Watershed Area,1619,1030,49,18,8,2,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||128-128-128,0,0,0,0,0,0
+1,114,113,106,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,115,8,105,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,116,40,105,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,117,stored runoff DOC loss,1119,794,53,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,118,stored channel load,1405,826,58,18,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,119,Channel runoff loss,1405,977,59,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,120,total daily DOC loss,1410,1105,62,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,121,direct runoff loss,1579,833,50,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,122,ChannelFlowCoef,1177,735,82,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,123,122,117,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,124,119,118,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,125,117,118,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,126,ChannelFlowCoef,1280,925,82,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,127,126,119,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,128,118,119,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,129,119,120,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,130,121,120,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,131,ChannelFlowCoef,1739,831,82,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,132,131,121,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,133,120,106,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,134,8,117,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,135,40,120,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,136,8,121,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,137,Water Limited Carbon Decomposion,461,397,57,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,138,Temperature Limited Carbon Decomposition,680,399,62,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,139,Tref,797,303,20,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,140,Unsatzone,436,293,54,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,141,SOIL WATER CAP,316,288,66,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,142,141,137,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,143,140,137,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,144,peat decomp,572,486,52,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,145,5,138,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,146,139,138,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,147,2,138,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,148,74,138,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,149,3,137,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,150,137,144,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,151,138,144,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,152,144,1,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,153,144,78,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,154,fast gwflow,762,721,58,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,155,154,6,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,156,recharge,758,691,46,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,157,156,6,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,158,Carbon Balance 1,2245,350,61,23,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,159,peat decomp,2243,231,61,12,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,160,Watershed Area,2498,263,47,23,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,161,total daily DOC loss,2247,469,96,29,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,162,160,158,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,163,159,158,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,164,161,158,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,165,Available C in unsatzone kg,2276,1019,54,23,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,166,available C in unsatzone,2249,917,57,23,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,167,166,165,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,168,160,165,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,169,peat decomp,2250,557,61,12,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,170,peat decomp kg,2251,654,62,22,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,171,169,170,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,172,160,170,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*DOC 2 layer
+$-1--1--1,0,|12||-1--1--1|-1--1--1|-1--1--1|-1--1--1|-1--1--1|96,96,66,0
+10,1,Temperature Limited Carbon Decomposition,1731,132,57,27,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,2,activeE,1932,0,59,15,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,3,2,1,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,4,andecomp,1845,-23,45,17,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,5,4,1,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,6,soil temp,1738,-21,43,9,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,7,6,1,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,8,Tref,1921,96,31,12,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,9,8,1,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,10,Water Limited Carbon Decomposion,1477,137,56,30,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,11,aerdecomp rate,1307,50,47,18,8,2,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||0-0-255,0,0,0,0,0,0
+1,12,11,10,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,13,SOIL WATER CAP,1375,19,56,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,14,13,10,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,15,Unsatzone,1472,-36,48,31,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,16,15,10,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,17,Avalable C Unsat Zone,1601,508,81,25,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,18,Available C Sat Zone,1603,901,79,24,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,19,INIT C Unsat Zone kg,2422,-119,77,23,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,20,Init C Sat Zone kg,1339,927,42,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,21,20,18,0,0,0,0,0,192,1,-1--1--1,,1|(0,0)|
+10,22,C Perc loss,1599,736,43,10,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,23,Perc C Loss Corr,1358,803,55,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,24,23,22,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,25,17,22,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,26,22,18,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,27,22,17,1,0,0,2,0,192,0,-1--1--1,,1|(1737,671)|
+10,28,percolation,1383,649,59,13,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,29,C loss fast GW,1707,1046,46,22,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,30,C loss UnSat Leakage,1784,663,51,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,31,18,29,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,32,17,30,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,33,Watershed Area,1937,223,54,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,34,33,200,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,35,30,17,1,0,0,0,0,192,0,-1--1--1,,1|(1760,600)|
+10,36,RECESS COEFF,1782,848,47,19,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,37,Watershed Area,1256,660,63,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,38,36,29,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,39,29,18,1,0,0,2,0,192,0,-1--1--1,,1|(1738,978)|
+10,40,unsat leakage,2350,798,69,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,41,Unsat C loss Corr,2143,846,55,24,8,3,0,2,-1,0,0,0,0-0-0,0-0-0,|||0-255-0,0,0,0,0,0,0
+1,42,41,30,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,43,Unsat Leakage m3,2156,801,67,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,44,40,43,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,45,43,30,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,46,Unsatzone,2146,673,57,13,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,47,Unsat Storage m3,2150,755,62,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,48,Watershed Area,2288,650,54,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,49,46,47,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,50,48,47,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,51,47,30,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,52,48,43,1,0,0,0,0,192,0,-1--1--1,,1|(2257,736)|
+10,53,Perc m3,1385,716,33,15,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,54,Unsat Storage m3,1345,758,80,29,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,55,54,22,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,56,28,53,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,57,37,53,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,58,53,22,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,59,Available C Deep Sat Zone,1539,1269,66,24,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,60,Init C Deep Sat Zone kg,1320,1269,53,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,61,60,59,0,0,0,0,0,192,1,-1--1--1,,1|(0,0)|
+10,62,deep percolation,1071,1080,76,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,63,SLOW RECESS COEFF,1338,1400,42,35,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,64,Deep Perc m3,1249,1089,48,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,65,Satzone,1074,1118,47,13,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,66,Watershed Area,989,921,54,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,67,Sat Zone Storage m3,1225,1146,72,22,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,68,66,67,1,0,0,0,0,192,0,-1--1--1,,1|(1036,1131)|
+1,69,65,67,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,70,62,64,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,71,66,64,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,72,C loss deep perc,1537,1038,46,19,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,73,18,72,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,74,72,59,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,75,64,72,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,76,67,72,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,77,Slow GW C loss Corr,1327,1472,51,24,8,3,0,2,-1,0,0,0,0-0-0,0-0-0,|||0-255-0,0,0,0,0,0,0
+10,78,GW C loss Corr,1822,921,48,24,8,3,0,2,-1,0,0,0,0-0-0,0-0-0,|||0-255-0,0,0,0,0,0,0
+1,79,78,29,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,80,72,18,1,0,0,2,0,192,0,-1--1--1,,1|(1485,997)|
+10,81,INIT SATZONE,1160,853,65,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,82,INIT DEEP SATZONE,1093,1211,85,15,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,83,INIT UNSATZONE,2194,440,69,23,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,84,INIT C conc deep satzone,1095,1341,86,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,85,INIT C conc satzone,1216,808,80,21,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,86,INIT C conc unsatzone,2156,563,80,16,8,3,0,2,-1,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,87,Init Unsatzone m3,2136,512,60,15,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,88,83,87,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,89,INIT C,2612,-166,41,13,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,90,89,19,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,91,INIT C Unsat Zone kg 2,1911,534,56,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,92,87,91,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,93,86,91,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,94,INIT Satzone m3,1163,928,59,19,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,95,66,94,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,96,81,94,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,97,94,20,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,98,85,20,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,99,INIT deep satzone m3,1094,1289,79,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,100,66,99,1,0,0,0,0,192,0,-1--1--1,,1|(973,1112)|
+1,101,82,99,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,102,99,60,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,103,84,60,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,104,Available C Surface Soils,608,484,58,24,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,105,104,125,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,106,C Loss GW Flow,1707,1450,52,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,107,29,106,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,108,30,106,1,0,0,0,0,192,0,-1--1--1,,1|(1950,1089)|
+10,109,C loss Slow GW Flow,1541,1441,52,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,110,59,109,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,111,63,109,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,112,77,109,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,113,109,59,1,0,0,2,0,192,0,-1--1--1,,1|(1629,1372)|
+1,114,91,17,0,0,0,0,0,192,1,-1--1--1,,1|(0,0)|
+1,115,33,87,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,116,C loss Total GW,1617,1631,83,28,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,117,109,116,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,118,106,116,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,119,surface soil depth,925,574,50,24,8,3,0,2,-1,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,120,INIT C surface soils,813,486,75,20,8,3,0,2,-1,0,0,0,0-0-0,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,121,Area DOC Soils,260,641,56,19,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,122,AREA LU,256,554,54,13,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,123,122,121,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,124,120,104,0,0,0,0,0,192,1,-1--1--1,,1|(0,0)|
+10,125,C loss Surface Soils,607,748,58,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,126,125,104,1,0,0,2,0,192,0,-1--1--1,,1|(526,602)|
+10,127,Max Store Surface Soils m3,747,620,59,31,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,128,runoff lu,108,687,47,13,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,129,runoff DOC Soils m3,261,751,50,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,130,128,129,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,131,121,129,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,132,129,125,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,133,127,125,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,134,Total Available C,1600,324,67,23,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,135,10,200,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,136,1,200,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,137,Ratio Soil Water Depth Total Soil Depth,604,215,81,17,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,138,surface soil depth,479,114,56,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,139,SOIL WATER CAP,603,115,68,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,140,DEEP GW CAP,706,120,53,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,141,138,137,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,142,139,137,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,143,140,137,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,144,C flow Soil water,1601,408,61,19,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,145,C flow Surface soils,603,324,52,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,146,134,144,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,147,144,17,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,148,134,145,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,149,137,145,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,150,145,104,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,151,Ratio DOC producing LU,966,193,58,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,152,Area DOC Soils,927,632,51,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,153,AREA LU,966,106,54,13,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,154,153,151,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,155,151,145,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,156,Watershed Area,2420,-228,54,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,157,156,19,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,158,145,144,1,0,0,0,0,192,0,-1--1--1,,1|(1111,418)|
+1,159,144,134,1,0,0,2,0,192,0,-1--1--1,,1|(1687,386)|
+1,160,145,134,1,0,0,0,0,192,0,-1--1--1,,1|(1063,242)|
+10,161,Init C conc Surface soils,989,488,57,24,8,3,0,2,-1,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,162,127,120,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,163,161,120,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,164,119,127,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,165,152,127,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,166,C Loss Total,1036,1651,56,22,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,167,116,166,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,168,streamflow,848,1590,59,13,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,169,Streamflow m3,848,1692,49,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,170,Watershed Area,660,1600,54,24,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,171,168,169,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,172,170,169,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,173,Stream DOC conc,849,1822,56,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,174,169,173,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,175,166,173,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,176,Direct C loss Surface Soils,749,1009,58,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,177,C loss Surface Soils to Storage,605,1050,69,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,178,C loss Channel flow,609,1283,56,24,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,179,C Storage Channel,610,1164,45,24,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,180,ChannelFlowCoef,404,965,69,24,8,2,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||0-0-255,0,0,0,0,0,0
+1,181,177,179,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,182,179,178,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,183,180,177,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,184,180,176,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,185,180,178,1,0,0,0,0,192,0,-1--1--1,,1|(474,1182)|
+1,186,178,179,1,0,0,2,0,192,0,-1--1--1,,1|(718,1226)|
+1,187,178,166,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,188,176,166,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,189,Total C loss Surface soils,605,867,57,24,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,190,125,189,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,191,189,176,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,192,189,177,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,193,176,189,1,0,0,0,0,192,0,-1--1--1,,1|(762,934)|
+1,194,177,189,1,0,0,0,0,192,0,-1--1--1,,1|(559,946)|
+10,195,Carbon Balance 2,2730,156,44,24,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,196,Total Available C,2732,45,88,37,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,197,C Loss Total,2739,298,62,28,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,198,196,195,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,199,197,195,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,200,Total Decomp,1598,230,50,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,201,200,134,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*Water Temperature
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-0|-1--1--1|255-255-255|96,96,75,0
+10,1,mean daily air temp,920,327,55,18,8,131,0,2,-1,0,0,0,0-0-0,0-0-0,|||255-0-0,0,0,0,0,0,0
+10,2,Transfer Function,920,417,37,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,3,Heat Transfer,919,493,55,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,4,Freeze Stop,771,492,49,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,5,Slope Warming,1170,340,62,11,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,6,Slope Cooling,1166,403,57,11,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,7,Simulated Water Temperature,916,612,58,32,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,8,Inital Water Temperature,726,612,51,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,9,1,2,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,10,5,2,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,11,6,2,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,12,7,2,1,0,0,0,0,128,0,-1--1--1,,1|(1031,519)|
+1,13,2,3,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,14,3,7,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,15,4,3,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,16,2,4,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,17,7,4,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,18,8,7,0,0,0,0,0,128,1,-1--1--1,,1|(0,0)|
+10,19,Measured Water Temperature,560,532,51,25,8,3,0,2,-1,0,0,0,0-0-0,0-0-0,|||255-0-0,0,0,0,0,0,0
+1,20,19,8,0,0,0,0,0,128,1,-1--1--1,,1|(0,0)|
+10,21,met file name,913,262,64,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,22,21,1,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,23,calib file name,521,431,40,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,24,23,19,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*Optimizing
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-0|-1--1--1|-1--1--1|96,96,62,0
+10,1,Measured Water Temperature,2781,43,51,25,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||255-0-0,0,0,0,0,0,0
+10,2,calib file name,3090,-54,57,11,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,3,Meas Streamflow,3717,95,46,18,8,3,0,2,-1,0,0,0,0-0-0,0-0-0,|||255-0-0,0,0,0,0,0,0
+1,4,2,3,1,0,0,2,0,128,0,-1--1--1,,1|(3413,-4)|
+1,5,2,1,1,0,0,2,0,128,0,-1--1--1,,1|(2953,-38)|
+10,6,Channel Lake Evap,3416,873,60,18,8,130,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,7,StreamFlowResiduals,3672,249,85,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,8,StreamFlowResidualsSquared,3613,370,116,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,9,7,8,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,10,StreamFlowRMS,3791,372,69,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,11,7,10,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,12,GroundWaterResiduals,3931,263,91,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,13,GroundWaterRMS,3933,371,75,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,14,12,13,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,15,SeasonalCoverCoeff,3209,873,92,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,16,WaterBalance2RMS,3414,1151,80,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,17,Water Balance 2,3410,1049,60,19,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,18,17,16,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,19,WaterBalance1RMS,3138,1150,80,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,20,Water Balance 1,3139,1053,54,18,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,21,20,19,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,22,Meas Streamflow,3279,1006,52,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,23,22,20,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,24,precip correct,3408,943,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,25,WaterBalance3RMS,3673,1153,80,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,26,Water Balance 3,3675,1050,60,19,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,27,26,25,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,28,24,26,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,29,24,20,1,0,0,0,0,64,0,-1--1--1,,1|(3271,963)|
+10,30,streamflow,3797,998,56,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,31,30,26,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,32,24,17,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,33,22,17,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,34,Actual Modeled Evapotrans,3670,948,63,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,35,Max Modeled Evapotrans,3137,938,56,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,36,15,35,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,37,35,20,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,38,34,17,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,39,34,26,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,40,gwflow,4031,159,42,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,41,40,12,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,42,FINAL TIME,3276,1072,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,43,Time,3270,1113,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,44,43,19,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,45,43,16,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,46,42,19,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,47,42,16,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,48,NormalizedWB2,3507,1272,66,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,49,17,48,1,0,0,0,0,64,0,-1--1--1,,1|(3485,1160)|
+10,50,RMSE,3614,511,29,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,51,SumStreamFlowResidualsSquared,3612,447,105,22,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,52,RunLengthYears,3348,1226,66,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,53,52,48,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,54,ElapsedDays,3409,428,52,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,55,INITIAL TIME,3303,368,43,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,56,Time,3300,408,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,57,55,54,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,58,56,54,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,59,54,50,1,0,0,0,0,64,0,-1--1--1,,1|(3484,498)|
+1,60,8,51,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,61,ElapsedDays,3172,1226,63,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,62,61,52,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,63,51,50,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,64,potential evapotrans,3024,871,50,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,65,64,35,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,66,evapotrans,3760,885,55,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,67,66,34,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,68,6,35,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,69,6,34,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,70,Simulated Water Temperature,2523,59,56,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,71,Water Temp Residuals,2625,130,51,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,72,Water Temp Residuals Squared,2547,252,51,25,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,73,71,72,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,74,WaterTempRMS,2712,252,68,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,75,71,74,0,0,0,0,1,64,0,0-0-0,|||0-0-0,1|(0,0)|
+1,76,70,71,0,0,0,0,1,128,0,0-0-0,|||0-0-0,1|(0,0)|
+1,77,1,71,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,78,Meas Runoff,4209,77,53,11,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||255-0-0,0,0,0,0,0,0
+10,79,Meas Baseflow,3931,68,61,11,8,3,0,2,0,0,0,0,-1--1--1,0-0-0,|||255-0-0,0,0,0,0,0,0
+1,80,2,78,0,0,0,2,0,64,0,-1--1--1,,1|(0,0)|
+1,81,79,12,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,82,Runoff Residuals,4211,228,40,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,83,Runoff RMS,4214,367,53,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,84,78,82,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,85,82,83,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,86,Direct Runoff,4371,143,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,87,Channel Discharge,4420,214,46,18,8,130,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,88,86,82,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,89,streamflow,3542,199,56,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,90,89,7,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,91,87,82,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,92,2,79,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,93,Meas slow gwflow,4608,81,44,18,8,131,0,2,0,0,0,0,-1--1--1,0-0-0,|||255-0-0,0,0,0,0,0,0
+1,94,2,93,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,95,Slow gwflow,4747,181,64,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,96,SlowGWResiduals,4610,225,75,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,97,93,96,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,98,95,96,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,99,SlowGWRMS,4610,364,59,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,100,96,99,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,101,Final Cum Runoff Residual,4233,703,42,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,102,Time,4367,625,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,103,FINAL TIME,4396,688,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,104,102,101,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,105,103,101,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,106,Corrected Runoff,4320,440,47,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,107,Cum Meas Runoff,4129,542,46,20,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,108,Cum Corrected Runoff,4322,544,64,20,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,109,106,108,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,110,78,107,1,0,0,0,0,192,0,-1--1--1,,1|(4139,302)|
+1,111,107,101,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,112,108,101,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,113,DOC calib file name,1196,-38,57,18,8,3,0,2,-1,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+10,114,meas interpolated DOC,1476,141,47,25,8,3,0,18,-1,0,0,0,0-0-0,0-0-0,|||255-0-0,0,0,0,0,0,0
+1,115,113,114,1,0,0,2,0,64,0,-1--1--1,,1|(1423,14)|
+10,116,Daily Load Residuals,2144,1468,45,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,117,Daily Load RMS,2148,1614,45,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,118,116,117,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+12,119,0,1214,-112,122,13,0,7,0,8,-1,0,0,0,-1--1--1,-1--1--1,|18||0-0-0,0,0,0,0,0,0
+Importing DOC measured Data
+12,120,0,925,1210,240,15,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|14||0-0-0,0,0,0,0,0,0
+Monthly Simulated DOC Load
+10,121,Mo Cum Step DOC sim,948,1603,57,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,122,Mo Cum DOC sim,949,1748,60,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,123,Mo Cum Step DOC sim Delay,772,1627,63,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,124,135,121,1,0,0,0,0,64,0,-1--1--1,,1|(793,1558)|
+10,125,DOC load daily sim,951,1377,62,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,126,streamflow,951,1267,56,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,127,126,125,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,128,Watershed Area,853,1278,49,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,129,128,125,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,130,DOC conc in streamflow,730,1323,59,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,131,130,125,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,132,121,123,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,133,121,122,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,134,123,122,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,135,MonthSwitch,707,1467,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,136,135,122,1,0,0,0,0,64,0,-1--1--1,,1|(692,1650)|
+10,137,DOC load total sim,950,1488,63,23,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,138,125,137,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,139,137,121,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+12,140,0,1379,1206,240,15,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|14||0-0-0,0,0,0,0,0,0
+Monthly Measured (Interpolated) DOC Load
+10,141,Mo Cum Step DOC meas interpolated,1329,1605,57,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,142,145,141,1,0,0,0,0,64,0,-1--1--1,,1|(1401,1543)|
+10,143,Mo Cum DOC meas interpolated,1330,1809,60,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,144,141,143,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,145,MonthSwitch,1492,1519,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,146,145,143,1,0,0,0,0,64,0,-1--1--1,,1|(1432,1712)|
+10,147,Mo Cum Step DOC meas interpolated Delay,1247,1699,57,32,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,148,141,147,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,149,147,143,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,150,DOC load total meas interpolated,1329,1487,61,25,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,151,150,141,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,152,DOC load daily meas interpolated,1328,1374,62,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,153,meas interpolated DOC,1519,1320,47,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,154,153,152,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,155,Watershed Area,1438,1272,49,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,156,155,152,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,157,152,150,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,158,Mo Load Residuals,1120,1887,40,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,159,143,158,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,160,122,158,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,161,DOC Load RMS,1121,1976,46,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,162,158,161,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,163,Meas Streamflow,1329,1258,52,18,8,2,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||128-128-128,0,0,0,0,0,0
+1,164,163,152,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+12,165,0,2152,1229,240,15,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|14||0-0-0,0,0,0,0,0,0
+Daily DOC Load Residuals
+10,166,Meas DOC,1019,138,46,11,8,3,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||255-0-0,0,0,0,0,0,0
+1,167,113,166,1,0,0,2,0,192,0,-1--1--1,,1|(1090,25)|
+10,168,Soil Moisture Index,1155,266,54,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,169,SOIL WATER CAP,1173,174,66,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,170,Unsatzone,1301,203,54,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,171,169,168,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,172,170,168,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,173,Sat DOC,944,403,38,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,174,UnSat DOC,1060,401,49,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,175,168,173,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,176,168,174,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,177,Soil Moister Index Threshold,900,253,49,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,178,177,173,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,179,177,174,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,180,DOC load daily sim,2228,1314,48,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,181,180,116,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,182,DOC load daily meas interpolated,2034,1316,53,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,183,182,116,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,184,152,137,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,185,166,174,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,186,166,173,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,187,Mean Meas Interpolated DOC,1637,223,48,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,188,FINAL TIME,1761,188,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,189,188,187,0,0,0,0,0,0,1,-1--1--1,,1|(0,0)|
+10,190,INITIAL TIME,1751,124,43,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,191,190,187,0,0,0,0,0,0,1,-1--1--1,,1|(0,0)|
+1,192,114,187,0,0,0,0,0,192,1,-1--1--1,,1|(0,0)|
+10,193,Mean Sim DOC,1979,279,64,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,194,DOC conc in streamflow,1972,86,59,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,195,Sum Sim DOC,1974,180,60,23,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,196,194,195,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,197,195,193,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,198,Final Diff Mean Meas SIm DOC,1825,404,62,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,199,INITIAL TIME,2139,219,43,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,200,FINAL TIME,2140,274,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,201,187,198,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,202,193,198,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,203,200,198,1,0,0,0,0,192,0,-1--1--1,,1|(2033,370)|
+1,204,199,193,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,205,200,193,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,206,Time,2207,132,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,207,206,193,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,208,206,198,1,0,0,0,0,192,0,-1--1--1,,1|(2140,342)|
+10,209,Final Diff Meas Sim DOC Load,945,966,63,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,210,Time,780,934,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,211,FINAL TIME,783,987,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,212,210,209,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,213,211,209,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,214,Temperature Limited Carbon Decomposition,965,567,66,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,215,Watershed DOC Decomp,1051,694,58,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,216,214,215,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,217,DOC LU,1176,613,38,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,218,AREA LU,1169,538,54,11,8,2,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||128-128-128,0,0,0,0,0,0
+1,219,217,215,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,220,Meas Watershed DOC Export,789,709,52,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,221,Daily Discharge,787,618,62,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,222,streamflow,781,542,56,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,223,222,221,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,224,221,220,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,225,Watershed Area,665,549,49,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,226,225,221,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,227,meas interpolated DOC,553,646,47,25,8,2,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||255-0-0,0,0,0,0,0,0
+1,228,227,220,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,229,218,217,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,230,Sum Watershed DOC Export,792,812,66,31,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,231,Sum Watershed DOC Decompostion,1051,807,71,29,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,232,220,230,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,233,215,231,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,234,230,231,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,235,230,209,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,236,231,209,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,237,Meas Runoff,570,308,64,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,238,Runoff DOC,752,393,53,23,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,239,Runoff Threshold,572,387,76,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,240,166,238,1,0,0,0,0,192,0,-1--1--1,,1|(763,212)|
+1,241,237,238,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,242,239,238,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,243,Runoff Median,269,419,60,23,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,244,Runoff Std,388,419,46,23,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,245,237,244,0,0,0,0,0,192,1,-1--1--1,,1|(0,0)|
+10,246,INITIAL TIME,435,230,43,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,247,FINAL TIME,329,225,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,248,247,243,0,0,0,0,0,192,1,-1--1--1,,1|(0,0)|
+1,249,247,244,0,0,0,0,0,192,1,-1--1--1,,1|(0,0)|
+10,250,Time,338,-121,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,251,237,243,1,0,0,0,0,192,1,-1--1--1,,1|(417,291)|
+1,252,246,244,0,0,0,0,0,192,1,-1--1--1,,1|(0,0)|
+1,253,246,243,0,0,0,0,0,192,1,-1--1--1,,1|(0,0)|
+10,254,INIT C,1444,561,42,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,255,available C in unsatzone,1625,569,59,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,256,Time,1395,661,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,257,FINAL TIME,1409,726,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,258,Diff Init Final Available DOC,1555,701,60,23,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,259,254,258,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,260,255,258,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,261,256,258,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,262,257,258,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,263,Relative Diff Available DOC,1558,871,60,23,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,264,258,263,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,265,257,263,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,266,256,263,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,267,255,263,1,0,0,0,0,192,0,-1--1--1,,1|(1653,720)|
+10,268,Meas DOC,1863,618,57,11,8,2,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||255-0-0,0,0,0,0,0,0
+10,269,DOC conc in streamflow,2062,627,75,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,270,Relative Diff Stream DOC Conc,1962,747,68,37,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,271,268,270,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,272,269,270,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,273,3,7,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*Error Calc
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-0|-1--1--1|255-255-255|96,96,70,0
+10,1,Meas Streamflow,1743,600,52,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,2,Qm Total,1742,706,40,24,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,3,StreamFlow CRM,1662,784,49,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,4,1,2,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,5,2,3,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,6,Qs Total,891,754,48,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,7,Yr Cum Step Qm,1760,1099,53,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,8,Yr Cum Step Qm Delay1,1920,1104,53,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,9,Yearly Cum Qm,1765,1179,48,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,10,8,9,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,11,7,8,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,12,7,9,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,13,Qm Total,1755,1004,51,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,14,Qs Total,1573,1003,48,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,15,13,7,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,16,Yr Cum Step Qs,1574,1093,53,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,17,Yr Cum Step Qs Delay1,1425,1093,53,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,18,Yearly Cum Qs,1576,1181,62,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,19,17,18,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,20,16,17,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,21,16,18,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,22,YearSwitch,1344,1029,58,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,23,22,16,1,0,0,0,0,64,0,-1--1--1,,1|(1455,1045)|
+1,24,14,16,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,25,22,18,1,0,0,0,0,64,0,-1--1--1,,1|(1390,1157)|
+10,26,Yearly Streamflow CRM,1681,1282,46,25,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,27,18,26,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,28,9,26,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,29,22,26,1,0,0,0,0,64,0,-1--1--1,,1|(1396,1202)|
+10,30,YearSwitch,5155,665,58,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,31,CumStepSfRes,4936,724,62,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,32,YearCumSfRes,4940,788,62,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,33,CumStepSfResDelay1,5093,726,87,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,34,30,31,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,35,31,33,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,36,31,32,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,37,33,32,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,38,30,32,1,0,0,0,0,64,0,-1--1--1,,1|(5124,768)|
+10,39,Yearly RMSE,4945,867,56,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,40,32,39,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,41,30,39,1,0,0,0,0,64,0,-1--1--1,,1|(5109,823)|
+10,42,dayjul,4755,786,37,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,43,dayjul Delay1,4753,844,54,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,44,42,43,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,45,43,39,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,46,SumStreamFlowResidualsSquared,4939,607,144,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,47,46,31,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,48,Meas minus Sim,5492,689,48,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,49,Meas Streamflow,5423,599,52,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,50,49,48,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,51,Sum Meas minus Sim,5505,772,42,27,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,52,48,51,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,53,Mean Meas Streamflow,5705,625,47,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,54,FINAL TIME,5937,550,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,55,54,53,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,56,INITIAL TIME,5764,547,43,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,57,56,53,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,58,Meas Streamflow,5630,543,52,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,59,58,53,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,60,Meas minus Mean,5710,695,48,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,61,53,60,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,62,Meas Streamflow,5900,691,52,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,63,62,60,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,64,Sum Meas minus Mean,5714,770,42,28,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,65,60,64,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,66,NSE,5611,856,21,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,67,64,66,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,68,51,66,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,69,streamflow,5527,593,56,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,70,69,48,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,71,FINAL TIME,5488,870,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,72,Time,5486,919,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,73,71,75,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,74,72,75,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,75,Final NSE Streamflow,5606,940,46,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,76,66,75,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,77,Final CRM,1665,853,45,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,78,Time,1440,830,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,79,FINAL TIME,1476,893,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,80,78,77,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,81,79,77,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,82,3,77,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,83,Simulated Runoff,6202,614,40,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,84,Direct Runoff,6140,553,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,85,Channel Discharge,6256,556,46,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,86,84,83,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,87,85,83,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,88,Meas Runoff minus Sim,6203,705,53,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,89,Meas Runoff,6107,655,64,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,90,83,88,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,91,89,88,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,92,Sum Meas Runoff minus Sim,6198,796,61,29,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,93,88,92,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,94,Mean Meas Runoff,6371,633,47,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,95,FINAL TIME,6500,632,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,96,95,94,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,97,INITIAL TIME,6496,594,43,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,98,97,94,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,99,Meas Runoff,6376,553,64,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,100,99,94,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,101,Meas Runoff minus Mean,6369,707,53,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,102,94,101,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,103,Meas Runoff,6536,699,64,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,104,103,101,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,105,Sum Meas Runoff minus Mean,6375,795,52,29,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,106,101,105,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,107,NSE Runoff,6264,888,50,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,108,92,107,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,109,105,107,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,110,Final NSE Runoff,6156,926,42,18,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,111,107,110,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,112,FINAL TIME,5990,908,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,113,112,110,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,114,Time,6019,832,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,115,114,110,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,116,Meas Baseflow,6737,555,44,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,117,gwflow,6859,548,42,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,118,Meas Baseflow minus Sim,6809,635,61,18,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,119,117,118,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,120,116,118,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,121,Sum Meas Baseflow minus Sim,6822,777,52,36,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,122,118,121,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,123,Mean Meas Baseflow,7019,572,47,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,124,FINAL TIME,7161,579,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,125,124,123,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,126,INITIAL TIME,7155,529,43,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,127,126,123,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,128,Meas Baseflow,7021,493,44,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,129,128,123,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,130,Meas Baseflow minus Mean,7023,661,61,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,131,123,130,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,132,Meas Baseflow,7186,671,44,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,133,132,130,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,134,Sum Meas Baseflow minus Mean,7029,781,54,36,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,135,130,134,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,136,NSE Baseflow,6930,887,58,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,137,121,136,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,138,134,136,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,139,Final NSE Baseflow,6804,959,42,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,140,136,139,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,141,FINAL TIME,6671,978,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,142,141,139,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,143,Time,6684,880,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,144,143,139,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,145,Meas Streamflow,4320,623,52,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,146,streamflow,4468,624,56,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,147,"Absolute sim - meas",4388,704,58,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,148,145,147,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,149,146,147,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,150,"Sum absolute sim - meas",4390,802,41,25,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,151,147,150,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,152,MAE,4445,879,24,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,153,150,152,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,154,Number of observations,4512,794,51,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,155,Meas Streamflow,4575,722,52,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,156,155,154,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,157,154,152,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,158,Final MAE,4326,899,44,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,159,152,158,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+10,160,FINAL TIME,4219,858,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,161,160,158,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,162,Time,4208,906,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,163,162,158,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,164,YearSwitch,2045,1010,58,11,8,2,1,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,165,164,7,1,0,0,0,0,192,0,-1--1--1,,1|(1904,1019)|
+1,166,164,9,1,0,0,0,0,192,0,-1--1--1,,1|(1973,1148)|
+12,167,0,3575,535,167,16,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|16||0-0-0,0,0,0,0,0,0
+Coefficient of Residual Mass
+12,168,0,4399,518,121,16,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|16||0-0-0,0,0,0,0,0,0
+Mean Absolute Error
+12,169,0,4912,502,142,16,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|16||0-0-0,0,0,0,0,0,0
+Root Mean Square Error
+12,170,0,6277,434,108,16,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|16||0-0-0,0,0,0,0,0,0
+Nash Sutcliff Error
+10,171,Qm Total,1778,1473,51,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,172,Qs Total,1579,1471,48,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,173,Mo Cum Step Qs,1578,1544,57,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,174,Mo Cum Step Qs Delay1,1407,1547,57,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,175,Mo Cum Qs,1578,1634,51,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,176,MonthSwitch,1279,1485,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,177,MonthSwitch,2029,1483,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,178,172,173,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,179,173,174,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,180,176,175,1,0,0,0,0,192,0,-1--1--1,,1|(1381,1613)|
+1,181,176,173,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,182,174,175,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,183,173,175,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,184,Mo Cum Step Qm,1785,1544,57,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,185,Mo Cum Step Qm Delay1,1950,1546,57,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,186,Mo Cum Qm,1789,1635,54,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,187,171,184,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,188,184,186,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,189,177,184,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,190,184,185,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,191,185,186,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,192,177,186,1,0,0,0,0,192,0,-1--1--1,,1|(1975,1618)|
+10,193,Monthly Streamflow CRM,1690,1742,46,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,194,175,193,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,195,186,193,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,196,176,193,1,0,0,0,0,192,0,-1--1--1,,1|(1388,1686)|
+12,197,0,1667,959,233,15,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|14||0-0-0,0,0,0,0,0,0
+Yearly Stream Discharges and Calculated CRM
+12,198,0,1682,1414,240,15,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|14||0-0-0,0,0,0,0,0,0
+Monthly Stream Discharges and Calculated CRM
+10,199,Runoff meas Total,2758,695,52,23,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,200,Runoff CRM,2661,766,54,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,201,199,200,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,202,Yr Cum Step Runoff meas,2759,1081,53,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,203,Yr Cum Step Runoff meas Delay1,2919,1086,53,25,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,204,Yearly Cum Runoff meas,2764,1161,52,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,205,203,204,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,206,202,203,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,207,202,204,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,208,Runoff meas Total,2757,993,57,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,209,208,202,1,0,0,0,0,64,0,-1--1--1,,1|(2760,1035)|
+10,210,Yr Cum Step Runoff sim,2573,1075,53,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,211,Yr Cum Step Runoff sim Delay1,2424,1075,53,25,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,212,Yearly Cum Runoff sim,2575,1163,48,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,213,211,212,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,214,210,211,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,215,210,212,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,216,YearSwitch,2343,1011,58,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,217,216,210,1,0,0,0,0,64,0,-1--1--1,,1|(2454,1027)|
+1,218,216,212,1,0,0,0,0,64,0,-1--1--1,,1|(2389,1139)|
+10,219,Yearly Runoff CRM,2680,1264,57,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,220,212,219,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,221,204,219,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,222,216,219,1,0,0,0,0,64,0,-1--1--1,,1|(2395,1184)|
+10,223,Final Runoff CRM,2664,835,51,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,224,Time,2439,812,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,225,FINAL TIME,2475,875,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,226,224,223,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,227,225,223,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,228,200,223,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,229,YearSwitch,3044,992,58,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,230,229,202,1,0,0,0,0,192,0,-1--1--1,,1|(2903,1001)|
+1,231,229,204,1,0,0,0,0,192,0,-1--1--1,,1|(2972,1130)|
+10,232,Runoff meas Total,2783,1455,57,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,233,Mo Cum Step Runoff sim,2577,1526,57,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,234,Mo Cum Step Runoff sim Delay1,2406,1529,57,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,235,Mo Cum Runoff sim,2577,1616,46,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,236,MonthSwitch,2278,1467,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,237,MonthSwitch,3028,1465,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,238,233,234,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,239,236,235,1,0,0,0,0,192,0,-1--1--1,,1|(2380,1595)|
+1,240,236,233,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,241,234,235,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,242,233,235,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,243,Mo Cum Step Runoff meas,2784,1526,57,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,244,Mo Cum Step Runoff meas Delay1,2949,1528,57,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,245,Mo Cum Runoff meas,2788,1617,52,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,246,232,243,1,0,0,0,0,192,0,-1--1--1,,1|(2787,1495)|
+1,247,243,245,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,248,237,243,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,249,243,244,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,250,244,245,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,251,237,245,1,0,0,0,0,192,0,-1--1--1,,1|(2974,1600)|
+10,252,Monthly Runoff CRM,2689,1724,64,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,253,235,252,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,254,245,252,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,255,236,252,1,0,0,0,0,192,0,-1--1--1,,1|(2387,1668)|
+12,256,0,2666,941,233,15,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|14||0-0-0,0,0,0,0,0,0
+Yearly Runoff and Calculated CRM
+12,257,0,2681,1396,240,15,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|14||0-0-0,0,0,0,0,0,0
+Monthly Runoff and Calculated CRM
+10,258,Runoff sim Total,2534,694,52,23,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,259,258,200,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,260,Corrected Runoff,2533,603,47,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,261,Meas Runoff,2753,606,64,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,262,261,199,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,263,260,258,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,264,Runoff sim Total,2565,992,51,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,265,264,210,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,266,Runoff sim Total,2575,1449,51,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,267,266,233,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,268,Baseflow meas Total,3658,705,52,23,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,269,gwflowCRM,3561,776,52,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,270,268,269,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,271,Yr Cum Step Baseflow meas,3659,1091,60,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,272,Yr Cum Step Baseflow meas Delay1,3819,1096,60,25,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,273,Yearly Cum Baseflow meas,3664,1171,60,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,274,272,273,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,275,271,272,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,276,271,273,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,277,Baseflow meas Total,3657,1003,50,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,278,277,271,1,0,0,0,0,64,0,-1--1--1,,1|(3660,1045)|
+10,279,Yr Cum Step gwflow sim,3473,1085,53,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,280,Yr Cum Step gwflow sim Delay1,3324,1085,53,25,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,281,Yearly Cum gwflow sim,3475,1173,48,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,282,280,281,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,283,279,280,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,284,279,281,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,285,YearSwitch,3243,1021,58,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,286,285,279,1,0,0,0,0,64,0,-1--1--1,,1|(3354,1037)|
+1,287,285,281,1,0,0,0,0,64,0,-1--1--1,,1|(3289,1149)|
+10,288,Yearly gwflow CRM,3580,1274,58,18,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,289,281,288,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,290,273,288,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,291,285,288,1,0,0,0,0,64,0,-1--1--1,,1|(3295,1194)|
+10,292,Final GW CRM,3564,845,64,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,293,Time,3339,822,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,294,FINAL TIME,3375,885,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,295,293,292,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,296,294,292,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,297,269,292,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,298,YearSwitch,3944,1002,58,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,299,298,271,1,0,0,0,0,192,0,-1--1--1,,1|(3803,1011)|
+1,300,298,273,1,0,0,0,0,192,0,-1--1--1,,1|(3872,1140)|
+10,301,Baseflow meas Total,3683,1465,50,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,302,Mo Cum Step gwflow sim,3477,1536,57,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,303,Mo Cum Step gwflow sim Delay1,3306,1539,57,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,304,Mo Cum gwflow sim,3477,1626,47,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,305,MonthSwitch,3178,1477,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,306,MonthSwitch,3928,1475,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,307,302,303,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,308,305,304,1,0,0,0,0,192,0,-1--1--1,,1|(3280,1605)|
+1,309,305,302,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,310,303,304,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,311,302,304,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,312,Mo Cum Step Baseflow meas,3684,1536,60,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,313,Mo Cum Step Baseflow meas Delay1,3849,1538,60,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,314,Mo Cum Baseflow meas,3681,1627,60,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,315,301,312,1,0,0,0,0,192,0,-1--1--1,,1|(3687,1505)|
+1,316,312,314,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,317,306,312,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,318,312,313,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,319,313,314,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,320,306,314,1,0,0,0,0,192,0,-1--1--1,,1|(3872,1612)|
+10,321,Monthly gwflow CRM,3589,1734,55,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,322,304,321,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,323,314,321,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,324,305,321,1,0,0,0,0,192,0,-1--1--1,,1|(3287,1678)|
+12,325,0,3566,951,259,15,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|14||0-0-0,0,0,0,0,0,0
+Yearly Groundwater Discharges and Calculated CRM
+12,326,0,3559,1405,267,15,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|14||0-0-0,0,0,0,0,0,0
+Monthly Groundwater Discharges and Calculated CRM
+10,327,gwflow sim Total,3434,704,52,23,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,328,327,269,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,329,gwflow sim Total,3473,1001,52,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,330,329,279,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,331,gwflow sim Total,3475,1459,52,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,332,331,302,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,333,Meas Baseflow,3659,614,44,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,334,gwflow,3430,610,42,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,335,334,327,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,336,333,268,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+12,337,0,5524,1251,154,16,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|16||0-0-0,0,0,0,0,0,0
+Nash Sutcliffe Error - Daily
+10,338,Mean Meas Daily DOC Load,5520,1444,47,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,339,FINAL TIME,5684,1351,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,340,339,338,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,341,Time,5702,1441,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,342,341,338,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,343,INITIAL TIME,5519,1322,43,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,344,343,338,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,345,Meas Daily DOC minus mean,5507,1767,48,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,346,Sum Meas Daily DOC minus mean,5509,1875,48,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,347,345,346,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+12,348,0,5535,1561,217,64,10,7,0,10,-1,0,0,0,-1--1--1,0-0-0,|14||255-0-0,0,0,0,0,0,0
+The mean in the equation below has to be updated MANUALLY after a first simulation but before optimization
+12,349,0,5871,1560,104,55,3,7,0,2,-1,0,0,0,0-0-0,0-0-0,|||255-0-0,0,0,0,0,0,0
+So before optimizing, just run the model and get the mean value and update the equation. That value will not change after the optimization - it comes from measured data
+10,350,Meas minus sim daily DOC load,5170,1557,64,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,351,Sum Meas minus sim daily DOC load,5174,1803,61,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,352,350,351,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,353,NSE Daily DOC Loads,5368,2012,50,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,354,351,353,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,355,346,353,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,356,FINAL NSE Daily DOC Loads,5255,2091,51,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,357,FINAL TIME,5108,1986,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,358,357,356,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,359,353,356,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,360,Time,5118,2056,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,361,360,356,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+12,362,0,6766,1241,170,16,0,7,0,40,-1,0,0,0,-1--1--1,0-0-0,Arial|16||0-0-0,0,0,0,0,0,0
+Nash Sutcliffe Error - Monthly
+10,363,Mean Meas Mo DOC Load,6821,1394,62,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,364,FINAL TIME,7030,1386,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,365,364,363,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,366,INITIAL TIME,6950,1329,43,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,367,366,363,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,368,Time,6828,1303,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,369,368,363,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+12,370,0,6833,1519,217,64,10,7,0,10,-1,0,0,0,-1--1--1,0-0-0,|14||255-0-0,0,0,0,0,0,0
+The mean in the equation below has to be updated MANUALLY after a first simulation but before optimization
+12,371,0,7158,1524,104,55,3,7,0,2,-1,0,0,0,0-0-0,0-0-0,|||255-0-0,0,0,0,0,0,0
+So before optimizing, just run the model and get the mean value and update the equation. That value will not change after the optimization - it comes from measured data
+10,372,Meas Mo DOC minus mean,6828,1696,62,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,373,MonthSwitch,7009,1701,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,374,373,372,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,375,Meas minus sim Mo DOC load,6487,1649,64,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,376,MonthSwitch,6323,1649,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,377,376,375,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,378,Sum Meas minus sim Mo DOC load,6486,1786,57,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,379,Sum Meas Mo DOC minus mean,6826,1831,59,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,380,375,378,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,381,372,379,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,382,MonthSwitch,7006,1829,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,383,382,379,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,384,MonthSwitch,6310,1786,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,385,384,378,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,386,NSE Mo DOC Loads,6680,1963,59,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,387,378,386,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,388,379,386,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,389,FINAL NSE Mo DOC Loads,6519,2040,51,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,390,FINAL TIME,6374,2008,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,391,390,389,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,392,386,389,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,393,Time,6428,1945,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,394,393,389,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+12,395,0,6124,1170,273,21,0,7,0,8,-1,0,0,0,-1--1--1,0-0-0,|24||0-0-0,0,0,0,0,0,0
+Nash Sutcliffe Errors - DOC Loads
+10,396,MonthSwitch,6428,1892,65,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,397,396,386,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,398,DOC load total meas interpolated,5378,1360,53,25,8,2,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||128-128-128,0,0,0,0,0,0
+1,399,398,338,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,400,Mo Cum DOC meas interpolated,6294,1543,53,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,401,400,375,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,402,Mo Cum DOC sim,6452,1525,45,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,403,402,375,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,404,Mo Cum DOC meas interpolated,7001,1756,53,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,405,404,372,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,406,DOC load total meas interpolated,6607,1340,53,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,407,406,363,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,408,Mean Meas Interpolated DOC,5531,2525,48,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,409,FINAL TIME,5633,2416,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,410,409,408,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,411,INITIAL TIME,5530,2378,43,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,412,411,408,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,413,meas interpolated DOC,5444,2416,47,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,414,413,408,0,0,0,0,0,64,1,-1--1--1,,1|(0,0)|
+10,415,Meas minus mean MEAS Interpolated DOC,5530,2665,51,32,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,416,408,415,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,417,Sum meas minus mean Meas Interpolated DOC,5538,2794,72,26,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,418,415,417,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,419,Meas minus sim DOCconc,5118,2674,64,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,420,sum meas minus sim DOC conc,5118,2806,65,27,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,421,DOC conc in streamflow,5059,2583,59,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,422,421,419,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,423,419,420,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,424,NSE Point DOC concs,5317,2943,49,18,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,425,417,424,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,426,420,424,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,427,Interpolated Meas minus mean MEAS DOC,6350,2676,51,32,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,428,Sum Interpolated Meas minus mean DOC conc,6352,2833,76,25,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,429,427,428,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,430,Interpolated meas minus sim DOCconc,5937,2697,63,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,431,Sum Interpolated Meas minus Sim DOC conc,5945,2835,70,29,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,432,DOC conc in streamflow,5859,2594,59,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,433,432,430,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,434,430,431,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,435,NSE Interpolated DOC concs,6143,2961,49,25,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,436,428,435,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,437,431,435,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,438,meas interpolated DOC,6496,2581,47,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,439,meas interpolated DOC,6009,2597,47,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,440,439,430,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+12,441,0,5343,2310,335,36,0,7,0,8,-1,0,0,0,-1--1--1,0-0-0,|24||0-0-0,0,0,0,0,0,0
+Nash Sutcliffe Errors - DOC Concentration (Only Measured DOC)
+12,442,0,6165,2310,335,36,0,7,0,8,-1,0,0,0,-1--1--1,0-0-0,|24||0-0-0,0,0,0,0,0,0
+Nash Sutcliffe Errors - DOC Concentration (Interpolated DOC)
+10,443,Mean Meas Interpolated DOC,6349,2520,52,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,444,443,427,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,445,DOC load daily meas interpolated,5659,1729,53,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,446,445,345,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,447,DOC load daily meas interpolated,5241,1464,53,25,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,448,447,350,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,449,DOC load daily sim,5093,1457,48,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,450,449,350,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,451,Meas DOC,5305,2479,57,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,452,451,419,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,453,451,415,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,454,438,427,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,455,INPUT Mean Meas Daily DOC Load,5659,1656,54,25,8,3,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||255-0-0,0,0,0,0,0,0
+10,456,INPUT Mean Meas Mo DOC Load,6999,1634,62,25,8,3,0,2,-1,0,0,0,-1--1--1,-1--1--1,|||255-0-0,0,0,0,0,0,0
+1,457,455,345,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,458,456,372,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,459,Qs Total,1579,699,38,23,3,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,460,streamflow,1580,601,44,26,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,461,460,459,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,462,459,3,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,463,1,459,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,464,261,258,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,465,333,327,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*Timekeeping
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-0|-1--1--1|-1--1--1|96,96,67,0
+12,1,0,829,802,73,95,3,0,0,4,-1,0,0,0,0-0-0,255-255-255,|||0-0-0,0,0,0,0,0,0
+12,2,0,834,693,60,11,0,4,0,24,-1,0,0,0,0-0-0,0-0-0,|14|B|0-0-0,0,0,0,0,0,0
+TIME INPUTS
+10,3,Time,820,732,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||0-0-0,0,0,0,0,0,0
+10,4,MONth,820,807,75,30,0,3,0,50,-1,0,0,0,-1--1--1,0-0-0,Helvetica|||255-0-0,0,0,0,0,0,0
+10,5,DAY of month,827,857,63,11,8,3,0,50,0,0,0,0,-1--1--1,0-0-0,Helvetica|||255-0-0,0,0,0,0,0,0
+10,6,YEAr,818,768,25,11,8,3,0,2,-1,0,0,0,-1--1--1,0-0-0,|||255-0-0,0,0,0,0,0,0
+12,7,0,625,1027,74,86,3,0,0,4,-1,0,0,0,0-0-0,255-255-255,|||0-0-0,0,0,0,0,0,0
+12,8,0,627,920,76,22,8,4,0,48,-1,0,0,0,0-0-0,0-0-0,Arial||B|0-0-0,0,0,0,0,0,0
+Counting (internal)
+12,9,0,1599,1167,88,59,3,0,0,4,-1,0,0,0,0-0-0,255-255-255,|||0-0-0,0,0,0,0,0,0
+12,10,0,1469,811,277,184,3,0,0,4,-1,0,0,0,0-0-0,255-255-255,|||0-0-0,0,0,0,0,0,0
+12,11,0,1599,1086,88,17,8,4,0,48,-1,0,0,0,0-0-0,0-0-0,Arial||B|0-0-0,0,0,0,0,0,0
+Time Bases (internal)
+10,12,Base Calendar Year,1602,1200,75,30,0,3,0,50,-1,0,0,0,-1--1--1,0-0-0,Arial|||0-0-0,0,0,0,0,0,0
+10,13,Base Month,1600,1124,75,30,0,3,0,32,-1,0,0,0,0-0-0,0-0-0,Arial|||0-0-0,0,0,0,0,0,0
+10,14,Base Week,1597,1168,75,30,0,3,0,32,-1,0,0,0,0-0-0,0-0-0,Arial|||0-0-0,0,0,0,0,0,0
+10,15,num days,619,1088,75,30,0,3,0,32,0,0,0,0,0-0-0,0-0-0,Arial|||0-0-0,0,0,0,0,0,0
+10,16,TIME 2 YEAR LOOKUP,1642,895,70,25,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,17,INITIAL YEAR,1286,692,73,16,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,18,FINAL YEAR,1287,832,76,14,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,19,INITIAL MONTH,1288,736,74,16,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,20,INITIAL DAY OF MONTH,1290,785,76,18,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,21,TIME 2 MONTH LOOKUP,1639,726,74,25,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,22,FINAL MONTH,1288,879,76,14,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,23,FINAL DAY OF MONTH,1287,924,78,17,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,24,TIME 2 MONTH LEAP LOOKUP,1639,808,73,24,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+12,25,0,1462,610,143,11,0,4,0,24,-1,0,0,0,0-0-0,0-0-0,|14|B|0-0-0,0,0,0,0,0,0
+SIMULATION CONTROL INPUTS
+10,26,INITIAL TIME,1465,757,62,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,27,20,26,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,28,19,26,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,29,17,26,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,30,24,26,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,31,21,26,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,32,16,26,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,33,4,15,1,0,0,0,0,0,0,-1--1--1,,1|(772,970)|
+1,34,6,15,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,35,dayjul,623,1027,26,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,36,time start cal yr,622,959,56,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,37,36,35,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,38,FINAL TIME,1478,855,56,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,39,23,38,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,40,22,38,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,41,18,38,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,42,24,38,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,43,21,38,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,44,16,38,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+1,45,3,35,1,0,0,0,0,64,0,-1--1--1,,1|(716,850)|
+10,46,time file name,1001,660,55,11,8,3,0,2,0,0,0,0,0-0-0,0-0-0,|||0-0-255,0,0,0,0,0,0
+1,47,46,4,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,48,46,5,0,0,0,0,0,128,0,-1--1--1,,1|(0,0)|
+1,49,46,6,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+10,50,YearSwitch,703,1279,47,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,51,Time,844,1287,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,52,51,50,0,0,0,0,0,0,0,-1--1--1,,1|(0,0)|
+10,53,FINAL TIME,877,1238,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,54,53,50,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,55,YEAr,559,1240,36,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+1,56,55,50,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,57,YearDelay1,560,1315,47,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,58,55,57,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,59,57,50,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+10,60,MONth,556,1424,43,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,61,Time,846,1513,34,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,62,FINAL TIME,880,1432,36,18,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|||128-128-128,0,0,0,0,0,0
+10,63,MonthDelay1,554,1515,54,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,64,MonthSwitch,707,1464,54,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,65,60,63,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,66,60,64,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,67,63,64,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,68,62,64,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,69,61,64,0,0,0,0,0,192,0,-1--1--1,,1|(0,0)|
+1,70,20,35,0,2,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,71,19,35,0,2,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,72,17,35,0,2,0,0,0,64,0,-1--1--1,,1|(0,0)|
+1,73,6,35,0,0,0,0,0,64,0,-1--1--1,,1|(0,0)|
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*Information
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,75,0
+12,1,0,834,67,150,14,8,4,0,56,-1,0,0,0,0-0-0,0-0-0,Arial|14|B|0-0-0,0,0,0,0,0,0
+History of Development
+12,2,0,420,131,211,16,8,4,0,48,-1,0,0,0,0-0-0,0-0-0,Arial||B|0-0-0,0,0,0,0,0,0
+Original Model developed by D Haith of Cornell Univ.
+12,3,0,578,170,323,26,8,4,0,32,-1,0,0,0,0-0-0,0-0-0,Arial|||0-0-0,0,0,0,0,0,0
+Haith, D.A. R. Mandel, and R.S Wu 1992 GWLF General Watershed Loading Functions Version 2 Users Manual.  Dept of Agricultural and Biological Eningeering, Cornell Univ.
+12,4,0,392,229,174,14,8,4,0,48,-1,0,0,0,0-0-0,0-0-0,Arial||B|0-0-0,0,0,0,0,0,0
+Modified by Elliot Schneiderman of NYC DEP
+12,5,0,488,495,289,17,8,4,0,48,-1,0,0,0,0-0-0,0-0-0,Arial||B|0-0-0,0,0,0,0,0,0
+Modified to run with the Vensim Model Reader by Don Pierson April 2003
+12,6,0,836,27,210,26,8,4,0,45,-1,0,0,0,0-0-255,255-255-255,Arial|18|B|0-0-0,0,0,0,0,0,0
+GWLF Hydrologic Water Balance
+12,7,0,405,430,185,41,8,135,0,32,-1,0,0,0,-1--1--1,0-0-0,Arial|||0-0-0,0,0,0,0,0,0
+Model was adapted to Mälaren Catchments  by addition of addition discharged damping needed for large watershed areas
+12,8,0,371,378,164,21,8,135,0,48,-1,0,0,0,-1--1--1,0-0-0,Arial||B|0-0-0,0,0,0,0,0,0
+Modifications during the CLIME project
+12,9,0,836,428,27,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+12,10,0,448,303,193,54,8,132,0,32,0,0,0,0,-1--1--1,0-0-0,Arial|||0-0-0,0,0,0,0,0,0
+Schneiderman, E.M. D.C. Pierson, D.G. Lounsbury, and M.S. Zion  2002.  Modelling the hydrochemistry of the cannonsville watershed with generalized watershed loading functions (GWLF).  Journal of the American Water Resources Association 38(5):1323-1347.
+12,11,0,922,312,40,20,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+12,12,0,568,546,385,25,8,132,0,48,-1,0,0,0,-1--1--1,0-0-0,Arial||B|0-0-0,0,0,0,0,0,0
+Modified to work with new versions of Vensim and updated data files by Don Pierson Nov 2021
+12,13,0,335,667,114,21,0,7,0,10,-1,0,0,0,-1--1--1,0-0-0,|24||255-0-0,0,0,0,0,0,0
+Last Modified 
+12,14,0,617,685,40,40,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+12,15,0,371,716,100,13,0,7,0,0,-1,0,0,0,0,0,0,0,0,0
+2022-03-31 -Don Pierson
+12,16,0,602,773,40,40,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+12,17,0,407,750,147,13,0,7,0,0,-1,0,0,0,0,0,0,0,0,0
+2022-04-05 Don Pierson add CN Adg
+12,18,0,557,828,40,40,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+12,19,0,665,768,40,40,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+12,20,0,481,780,237,13,0,7,0,0,-1,0,0,0,0,0,0,0,0,0
+2022-04-11 Don Pierson Added inital value for Deep Sat Zone
+12,21,0,408,846,40,40,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+///---\\\
+:GRAPH SIM_MEAS_Q_Daily
+:TITLE Simulated and Measured Streamflow
+:X-AXIS Base Calendar Year
+:X-LABEL Year
+:SCALE
+:VAR meas streamflow|Measured Streamflow
+:Y-MAX 0.75
+:DATASET *1
+:VAR streamflow|Simulated Streamflow
+:DATASET *1
+
+:GRAPH SIM_MEAS_Q_Monthly
+:TITLE Simulated and Measured Streamflow
+:X-AXIS Base Calendar Year
+:X-LABEL Year
+:SCALE
+:VAR Mo Cum Qm|Measured Streamflow
+:DATASET *1
+:VAR Mo Cum Qs|Simulated Streamflow
+:DATASET *1
+
+:GRAPH SIM_MEAS_Q_Yearly
+:TITLE Simulated and Measured Streamflow
+:X-AXIS Base Calendar Year
+:X-LABEL Year
+:SCALE
+:VAR Yearly Cum Qm|Measured Streamflow
+:DATASET *1
+:VAR Yearly Cum Qs|Simulated Streamflow
+:DATASET *1
+
+:GRAPH SIM_MEAS_Q_scatter_Daily
+:TITLE Simulated Streamflow vs Measured Streamflow
+:X-AXIS meas streamflow
+:X-LABEL Measured Streamflow
+:X-MIN 0
+:X-MAX 0.7
+:WIDTH 5
+:HEIGHT 5
+:DOTS
+:SCALE
+:VAR streamflow|Simulated Streamflow
+:Y-MIN 0
+:Y-MAX 0.7
+:DATASET *1
+
+:GRAPH SIM_MEAS_Q_scatter_Monthly
+:TITLE Simulated Streamflow vs Measured Streamflow
+:X-AXIS Mo Cum Qm
+:X-LABEL Measured Streamflow
+:X-MIN 0
+:X-MAX 20
+:WIDTH 8
+:HEIGHT 8
+:DOTS
+:SCALE
+:VAR Mo Cum Qs|Simulated Streamflow
+:Y-MIN 0
+:Y-MAX 20
+:DATASET *1
+
+:GRAPH SIM_MEAS_Q_scatter_Yearly
+:TITLE Simulated Streamflow vs Measured Streamflow
+:X-AXIS Yearly Cum Qm
+:X-LABEL Measured Streamflow
+:X-MIN 0
+:X-MAX 100
+:WIDTH 8
+:HEIGHT 8
+:DOTS
+:SCALE
+:VAR Yearly Cum Qs|Simulated Streamflow
+:Y-MIN 0
+:Y-MAX 100
+:DATASET *1
+
+:GRAPH SIM_MEAS_Water_Temp
+:TITLE Simulated and Measured Water Temperature
+:X-AXIS Base Calendar Year
+:X-LABEL Year
+:SCALE
+:VAR Measured Water Temperature|Measured Water Temperature
+:DATASET *1
+:VAR Simulated Water Temperature|Simulated Water Temperature
+:DATASET *1
+
+:GRAPH SIM_MEAS_WaterTemp_scatter
+:TITLE Simulated vs Measured Water temperature
+:X-AXIS Measured Water Temperature
+:X-LABEL Measured Water Temperature
+:X-MIN 0
+:X-MAX 30
+:WIDTH 5
+:HEIGHT 5
+:DOTS
+:SCALE
+:VAR Simulated Water Temperature|Simulated Water Temperature
+:Y-MIN 0
+:Y-MAX 30
+:DATASET *1
+
+:GRAPH Sim_GW_Flow_vs_Meas_BaseFlow
+:TITLE Sim Groundwater vs Meas Baseflow
+:SCALE
+:VAR Meas Baseflow|Measured Base Flow
+:Y-MAX 1
+:DATASET *1
+:VAR gwflow|Ground Water Flow
+:Y-MAX 1
+:DATASET *1
+
+:GRAPH Sim__Meas_GW_flow_Scatter
+:TITLE Simulated Channel Discharge vs Measured Streamflow
+:X-AXIS Meas Baseflow
+:X-LABEL Measured Baseflow
+:X-MIN 0
+:X-MAX 0.7
+:WIDTH 5
+:HEIGHT 5
+:DOTS
+:SCALE
+:VAR gwflow|Simulated Ground Water Flow
+:Y-MIN 0
+:Y-MAX 0.7
+:DATASET *1
+
+:GRAPH StreamFlowCRM
+:TITLE StreamFlow CRM at Monthly and Yearly Time Scales
+:WIDTH 10
+:HEIGHT 4
+:SCALE
+:VAR Yearly Streamflow CRM|Measured Base Flow
+:DATASET *1
+:SCALE
+:VAR Monthly Streamflow CRM|Ground Water Flow
+:DATASET *1
+
+:GRAPH GWFlowCRM
+:TITLE Groundwater Flow CRM at Monthly and Yearly Time Scales
+:WIDTH 10
+:HEIGHT 4
+:SCALE
+:VAR Yearly gwflow CRM|Yearky CRM
+:DATASET *1
+:SCALE
+:VAR Monthly gwflow CRM|Monthly CRM
+:DATASET *1
+
+:GRAPH Runoff_CRM
+:TITLE SurfaceRunoff CRM at Monthly and Yearly Time Scales
+:WIDTH 10
+:HEIGHT 4
+:SCALE
+:VAR Yearly runoff CRM|Yearky CRM
+:DATASET *1
+:SCALE
+:VAR Monthly runoff CRM|Monthly CRM
+:DATASET *1
+
+:GRAPH SIM_MEAS_DOC_CLIME_model
+:TITLE Simulated and Measured DOC CLIME Model
+:X-AXIS Base Calendar Year
+:X-LABEL Year
+:DOTS
+:SCALE
+:VAR Meas DOC|Measured DOC
+:DATASET *1
+:VAR DOC conc in streamflow|Simulated DOC
+:DATASET *1
+
+:GRAPH SIM_MEAS_DOC_2
+:TITLE Simulated and Measured DOC Model 2
+:X-AXIS Base Calendar Year
+:X-LABEL Year
+:DOTS
+:SCALE
+:VAR Meas DOC|Measured DOC
+:Y-MAX 20
+:DATASET *1
+:VAR Stream DOC conc
+:DATASET *1
+
+:GRAPH SIM_MEAS_DOC_Scatter_CLIME_Model
+:TITLE Measured vs Simulated DOC CLIME Model
+:X-AXIS Meas DOC
+:X-LABEL Measured DOC
+:X-MIN 5
+:X-MAX 14
+:WIDTH 15
+:HEIGHT 15
+:DOTS
+:SCALE
+:VAR DOC conc in streamflow|Simulated DOC
+:Y-MIN 5
+:Y-MAX 14
+:DATASET *1
+
+:GRAPH SIM_MEAS_DOC_Scatter_Model_2
+:TITLE Measured vs Simulated DOC  Model 2
+:X-AXIS Meas DOC
+:X-LABEL Measured DOC
+:WIDTH 15
+:HEIGHT 15
+:DOTS
+:SCALE
+:VAR Stream DOC conc|Simulated DOC
+:DATASET *1
+
+:GRAPH Soil_Temp_vs_Decomp
+:TITLE Soil Temperature vs Peat Decompositon
+:X-AXIS soil temp
+:X-LABEL Soil Temperature
+:DOTS
+:SCALE
+:VAR peat decomp|Peat Decomposition
+:DATASET *1
+
+:GRAPH Evapotranspirations
+:TITLE Evapotranspirations
+:X-AXIS Base Calendar Year
+:SCALE
+:VAR potential evapotrans
+:Y-MIN 0
+:Y-MAX 0.8
+:DATASET *1
+:VAR PT Evapotranspiration
+:Y-MIN 0
+:Y-MAX 0.8
+:DATASET *1
+:SCALE
+:VAR PM Evapotranspiration
+:Y-MIN 0
+:Y-MAX 0.8
+:DATASET *1
+
+:GRAPH DOC_Daily_Loads
+:TITLE DOC Daily Loads
+:X-AXIS Base Calendar Year
+:SCALE
+:VAR DOC load daily meas interpolated
+:DATASET *1
+:VAR DOC load daily sim
+:DATASET *1
+
+:GRAPH Model_C_balance
+:TITLE Watershed Carbon Balance CLIME and Model 2
+:X-AXIS Base Calendar Year
+:X-LABEL Year
+:X-DIV 5
+:SCALE
+:VAR Carbon Balance 1
+:Y-MIN -5e+07
+:DATASET *1
+:VAR Carbon Balance 2
+:DATASET *1
+
+:GRAPH Model_Decompostion
+:TITLE Carbon Decompostion CLIME and Model 2
+:X-AXIS Base Calendar Year
+:X-LABEL Year
+:X-DIV 5
+:SCALE
+:VAR peat decomp kg
+:DATASET *1
+:VAR Total Decomp
+:DATASET *1
+:L<%^E!@
+22:$,Dollar,Dollars,$s
+22:Hour,Hours
+22:Month,Months
+22:Person,People,Persons
+22:Unit,Units
+22:Week,Weeks
+22:Year,Years
+22:Day,Days
+10:Input_Files_Dalkarlshyttan.cin,Mal_Dalkarlshyttan_SE6C_1.cin,Mal_Dalkarlshyttan_SE6_DOC_1.cin
+11:DOC_Coeff1_DOC_Model2 _test2.voc
+12:Sim_vs_Meas_Concs DOC_model2.vpd
+23:0
+18:MinSoilAdjSenRange1.vsc
+20:SensSave1.lst
+15:0,0,0,0,0,0
+27:0,
+34:0,
+42:0
+72:0
+73:0
+35:Date
+36:YYYY-MM-DD
+37:1961
+38:1
+39:1
+40:2
+41:0
+95:1
+96:0
+97:0
+77:1
+78:0
+102:0
+93:0
+94:0
+92:0
+91:0
+90:0
+87:0
+75:
+43:LOADS_Domsta
+103:8,8,8,3,8
+105:0,0,0,0,0,0,0,0,0,0
+104:Arial|12||0-0-0|0-0-0|-1--1--1|0-0-0|192-192-192|-1--1--1
