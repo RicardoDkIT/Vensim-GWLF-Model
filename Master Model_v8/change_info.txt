@@ -1,3 +1,6 @@
 2023-10-02 
 Inital upload New version on model is working.  However, there is almost a 10x difference in the concentrations 
 simulated by the newversion (DOC 2) model and the original model developed by Pam Naden in CLIME
+
+2023-10-03
+Added a view for calculation of Annual means
